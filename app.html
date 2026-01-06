@@ -85,20 +85,32 @@ function execCoord(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!window.KONOMI)return;
-  CHAIN.init();CUBE.init();RUN.init();
+  try {
+    if(!window.KONOMI){
+      document.body.innerHTML='<div style="color:#ff4488;padding:2rem">Error: KONOMI not loaded. Check console.</div>';
+      return;
+    }
+    if(!window.CHAIN || !window.CUBE || !window.RUN){
+      document.body.innerHTML='<div style="color:#ff4488;padding:2rem">Error: Chain/Cube/Run not loaded. Check console.</div>';
+      return;
+    }
+    CHAIN.init();CUBE.init();RUN.init();
 
-  // Cube nav
-  const nav=document.getElementById('cube-nav');
-  [...CUBE.walk()].slice(0,20).forEach(c=>{
-    const b=document.createElement('button');
-    b.textContent=c.data.path;
-    b.onclick=()=>show('cube-info',`B[${c.coord.join('][')}]\n${c.data.url}\nup:${c.up()?.data.path||'-'} down:${c.down()?.data.path||'-'}\nleft:${c.left()?.data.path||'-'} right:${c.right()?.data.path||'-'}`);
-    nav.appendChild(b);
-  });
+    // Cube nav
+    const nav=document.getElementById('cube-nav');
+    [...CUBE.walk()].slice(0,20).forEach(c=>{
+      const b=document.createElement('button');
+      b.textContent=c.data.path;
+      b.onclick=()=>show('cube-info',`B[${c.coord.join('][')}]\n${c.data.url}\nup:${c.up()?.data.path||'-'} down:${c.down()?.data.path||'-'}\nleft:${c.left()?.data.path||'-'} right:${c.right()?.data.path||'-'}`);
+      nav.appendChild(b);
+    });
 
-  // Chain info
-  show('chain-info',`Blocks:${CHAIN.blocks.length} Valid:${CHAIN.verify().valid}\nGenesis:${CHAIN.blocks[0]?.hash}\nLatest:${CHAIN.blocks[CHAIN.blocks.length-1]?.hash}`);
+    // Chain info
+    show('chain-info',`Blocks:${CHAIN.blocks.length} Valid:${CHAIN.verify().valid}\nGenesis:${CHAIN.blocks[0]?.hash}\nLatest:${CHAIN.blocks[CHAIN.blocks.length-1]?.hash}`);
+  } catch(e) {
+    console.error('App init error:', e);
+    document.body.innerHTML='<div style="color:#ff4488;padding:2rem">Error: '+e.message+'</div>';
+  }
 });
 </script>
 </body></html>
