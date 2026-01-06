@@ -67,6 +67,8 @@ body{overflow:hidden;font-family:'Courier New',monospace;background:#0a0a0f}
 
 <div id="instructions">WASD to move • Mouse to look • Click portal to enter challenge</div>
 
+<div id="loading" style="position:fixed;inset:0;background:#0a0a0f;display:flex;align-items:center;justify-content:center;z-index:1000;color:#00ff88;font-size:1.5rem">Loading 3D Academy...</div>
+
 <div id="container"></div>
 
 <script>
@@ -123,6 +125,9 @@ const ACADEMY3D = {
 
     // Update stats
     this.updateStats();
+
+    // Hide loading
+    document.getElementById('loading').style.display = 'none';
 
     // Animate
     this.animate();
@@ -390,6 +395,21 @@ function closeModal() {
   ACADEMY3D.currentChallenge = null;
 }
 
-window.addEventListener('load', () => ACADEMY3D.init());
+window.addEventListener('load', () => {
+  try {
+    if (typeof THREE === 'undefined') {
+      alert('Three.js failed to load. Check your internet connection.');
+      return;
+    }
+    if (typeof LEVELS === 'undefined') {
+      alert('Levels not loaded. Path issue.');
+      return;
+    }
+    ACADEMY3D.init();
+  } catch(e) {
+    console.error('Init error:', e);
+    alert('Error: ' + e.message);
+  }
+});
 </script>
 </body></html>
