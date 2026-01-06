@@ -1,0 +1,55 @@
+<!-- K:airl01:1:82:k0:r1l2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI: Reinforcement Learning</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>AI:<span>RL</span></h1><p class="subtitle">B[6][1][2]</p></header>
+<nav><a href="../">← ai</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>Q-LEARNING</h2>
+<pre>
+<span class="kw">-- Q-Learning in Haskell</span>
+<span class="kw">type</span> State = <span class="ty">Int</span>
+<span class="kw">type</span> Action = <span class="ty">Int</span>
+<span class="kw">type</span> QTable = Map (State, Action) <span class="ty">Double</span>
+
+<span class="fn">qUpdate</span> :: <span class="ty">Double</span> -> <span class="ty">Double</span> -> QTable
+        -> State -> Action -> <span class="ty">Double</span> -> State -> QTable
+qUpdate α γ q s a r s' =
+  <span class="kw">let</span> maxQ = maximum [q ! (s', a') | a' <- actions]
+      old  = q ! (s, a)
+      new  = old + α * (r + γ * maxQ - old)
+  <span class="kw">in</span> insert (s, a) new q
+</pre>
+</section>
+
+<section>
+<h2>POLICY</h2>
+<pre>
+<span class="fn">εGreedy</span> :: <span class="ty">Double</span> -> QTable -> State -> IO Action
+εGreedy ε q s = <span class="kw">do</span>
+  r <- randomRIO (0, 1)
+  <span class="kw">if</span> r < ε
+    <span class="kw">then</span> randomChoice actions
+    <span class="kw">else</span> return $ argmax (\a -> q ! (s, a)) actions
+</pre>
+</section>
+
+<section>
+<h2>TRAINING LOOP</h2>
+<pre>
+<span class="fn">train</span> :: <span class="ty">Int</span> -> QTable -> IO QTable
+train 0 q = return q
+train n q = <span class="kw">do</span>
+  (s, a, r, s') <- step env (εGreedy 0.1 q)
+  <span class="kw">let</span> q' = qUpdate 0.1 0.99 q s a r s'
+  train (n-1) q'
+</pre>
+</section>
+
+<footer>K:ai/rl|B[6][1][2]</footer>
+</div>
+</body></html>

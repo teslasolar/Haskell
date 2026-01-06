@@ -1,0 +1,55 @@
+<!-- K:mlnaiv:1:74:k0:n1a2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ML: Naive Bayes</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>ML:<span>NAIVE BAYES</span></h1><p class="subtitle">B[5][1][1]</p></header>
+<nav><a href="../">← ml</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>NAIVE BAYES</h2>
+<pre>
+<span class="kw">type</span> Feature = <span class="ty">String</span>
+<span class="kw">type</span> Class = <span class="ty">String</span>
+<span class="kw">type</span> Dataset = [([Feature], Class)]
+
+<span class="fn">train</span> :: Dataset -> (Map Class <span class="ty">Double</span>, Map (Feature, Class) <span class="ty">Double</span>)
+train data = (priors, likelihoods)
+  <span class="kw">where</span>
+    n = fromIntegral (length data)
+    classes = nub (map snd data)
+
+    priors = Map.fromList
+      [(c, count c / n) | c <- classes]
+      <span class="kw">where</span> count c = fromIntegral . length $ filter ((==c) . snd) data
+
+    likelihoods = Map.fromList
+      [((f, c), prob f c) | c <- classes, f <- allFeatures]
+
+    prob f c = (countFC + 1) / (countC + vocab)
+      <span class="kw">where</span>
+        countFC = fromIntegral . length $ filter (hasFeature f c) data
+        countC  = fromIntegral . length $ filter ((==c) . snd) data
+        vocab   = fromIntegral (length allFeatures)
+</pre>
+</section>
+
+<section>
+<h2>PREDICT</h2>
+<pre>
+<span class="fn">predict</span> :: (Map Class <span class="ty">Double</span>, Map (Feature, Class) <span class="ty">Double</span>)
+        -> [Feature] -> Class
+predict (priors, likes) features =
+  fst . maximumBy (comparing snd) $
+    [(c, score c) | c <- Map.keys priors]
+  <span class="kw">where</span>
+    score c = log (priors ! c) +
+              sum [log (likes ! (f, c)) | f <- features]
+</pre>
+</section>
+
+<footer>K:ml/naive|B[5][1][1]</footer>
+</div>
+</body></html>

@@ -1,0 +1,55 @@
+<!-- K:aisrch:1:81:k0:s1r2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI: Search</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>AI:<span>SEARCH</span></h1><p class="subtitle">B[6][0][1]</p></header>
+<nav><a href="../">← ai</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>A* SEARCH</h2>
+<pre>
+<span class="fn">astar</span> :: (<span class="ty">Ord</span> a) => a -> (a -> <span class="ty">Bool</span>)
+      -> (a -> [a]) -> (a -> <span class="ty">Int</span>) -> Maybe [a]
+astar start goal neighbors h = go (singleton (h start, [start])) Set.empty
+  <span class="kw">where</span>
+    go pq visited
+      | null pq = Nothing
+      | goal current = Just (reverse path)
+      | current `Set.member` visited = go rest visited
+      | otherwise = go pq' (Set.insert current visited)
+      <span class="kw">where</span>
+        ((_, path@(current:_)), rest) = deleteFindMin pq
+        pq' = foldr (insert . score) rest (neighbors current)
+        score n = (length path + h n, n : path)
+</pre>
+</section>
+
+<section>
+<h2>BFS / DFS</h2>
+<pre>
+<span class="fn">bfs</span> :: <span class="ty">Ord</span> a => a -> (a -> [a]) -> [a]
+bfs start neighbors = go (Seq.singleton start) Set.empty
+  <span class="kw">where</span>
+    go queue visited
+      | Seq.null queue = []
+      | x `Set.member` visited = go xs visited
+      | otherwise = x : go (xs <> Seq.fromList (neighbors x))
+                           (Set.insert x visited)
+      <span class="kw">where</span> (x :< xs) = Seq.viewl queue
+
+<span class="fn">dfs</span> :: <span class="ty">Ord</span> a => a -> (a -> [a]) -> [a]
+dfs start neighbors = go [start] Set.empty
+  <span class="kw">where</span>
+    go [] _ = []
+    go (x:xs) visited
+      | x `Set.member` visited = go xs visited
+      | otherwise = x : go (neighbors x ++ xs) (Set.insert x visited)
+</pre>
+</section>
+
+<footer>K:ai/search|B[6][0][1]</footer>
+</div>
+</body></html>

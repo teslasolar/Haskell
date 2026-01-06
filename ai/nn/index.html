@@ -1,0 +1,60 @@
+<!-- K:ainn01:1:78:k0:n1n2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI: Neural Networks</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>AI:<span>NN</span></h1><p class="subtitle">B[6][1][1]</p></header>
+<nav><a href="../">← ai</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>NETWORK</h2>
+<pre>
+<span class="kw">type</span> Layer = [[<span class="ty">Double</span>]]  <span class="cmt">-- weights matrix</span>
+<span class="kw">type</span> Network = [Layer]
+
+<span class="fn">sigmoid</span> :: <span class="ty">Double</span> -> <span class="ty">Double</span>
+sigmoid x = 1 / (1 + exp (-x))
+
+<span class="fn">relu</span> :: <span class="ty">Double</span> -> <span class="ty">Double</span>
+relu = max 0
+</pre>
+</section>
+
+<section>
+<h2>FORWARD PASS</h2>
+<pre>
+<span class="fn">forward</span> :: Network -> [<span class="ty">Double</span>] -> [<span class="ty">Double</span>]
+forward net input = foldl layer input net
+  <span class="kw">where</span>
+    layer xs weights = map (sigmoid . sum . zipWith (*) xs) weights
+
+<span class="fn">predict</span> :: Network -> [<span class="ty">Double</span>] -> <span class="ty">Int</span>
+predict net = argmax . forward net
+</pre>
+</section>
+
+<section>
+<h2>BACKPROP</h2>
+<pre>
+<span class="fn">backprop</span> :: Network -> [<span class="ty">Double</span>] -> [<span class="ty">Double</span>] -> Network
+backprop net input target = zipWith updateLayer net deltas
+  <span class="kw">where</span>
+    outputs = scanl (flip layer) input net
+    errors  = zipWith (-) target (last outputs)
+    deltas  = scanr propError errors (zip net (init outputs))
+
+    propError (w, o) nextDelta =
+      [sum (zipWith (*) col nextDelta) * o' * (1-o')
+      | (col, o') <- zip (transpose w) o]
+
+    updateLayer weights delta =
+      [[w - 0.1 * d * o | (w, o) <- zip row outputs]
+      | (row, d) <- zip weights delta]
+</pre>
+</section>
+
+<footer>K:ai/nn|B[6][1][1]</footer>
+</div>
+</body></html>

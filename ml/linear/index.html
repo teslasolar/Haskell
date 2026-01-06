@@ -1,0 +1,45 @@
+<!-- K:mllin01:1:77:k0:l1i2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ML: Linear Regression</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>ML:<span>LINEAR</span></h1><p class="subtitle">B[5][0][1]</p></header>
+<nav><a href="../">← ml</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>LINEAR REGRESSION</h2>
+<pre>
+<span class="kw">type</span> Point = (<span class="ty">Double</span>, <span class="ty">Double</span>)
+
+<span class="fn">linearFit</span> :: [Point] -> (<span class="ty">Double</span>, <span class="ty">Double</span>)  <span class="cmt">-- (slope, intercept)</span>
+linearFit pts = (m, b)
+  <span class="kw">where</span>
+    n  = fromIntegral (length pts)
+    xs = map fst pts
+    ys = map snd pts
+    sumX  = sum xs
+    sumY  = sum ys
+    sumXY = sum (zipWith (*) xs ys)
+    sumX2 = sum (map (^2) xs)
+    m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX^2)
+    b = (sumY - m * sumX) / n
+</pre>
+</section>
+
+<section>
+<h2>PREDICT</h2>
+<pre>
+<span class="fn">predict</span> :: (<span class="ty">Double</span>, <span class="ty">Double</span>) -> <span class="ty">Double</span> -> <span class="ty">Double</span>
+predict (m, b) x = m * x + b
+
+<span class="cmt">-- Example</span>
+model = linearFit [(1,2), (2,4), (3,6)]
+result = predict model 5  <span class="cmt">-- 10.0</span>
+</pre>
+</section>
+
+<footer>K:ml/linear|B[5][0][1]</footer>
+</div>
+</body></html>

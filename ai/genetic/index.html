@@ -1,0 +1,61 @@
+<!-- K:aigen01:1:79:k0:g1e2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI: Genetic</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>AI:<span>GENETIC</span></h1><p class="subtitle">B[6][1][0]</p></header>
+<nav><a href="../">← ai</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>CHROMOSOME</h2>
+<pre>
+<span class="kw">type</span> Gene = <span class="ty">Bool</span>
+<span class="kw">type</span> Chromosome = [Gene]
+<span class="kw">type</span> Population = [Chromosome]
+
+<span class="fn">fitness</span> :: Chromosome -> <span class="ty">Double</span>
+fitness = fromIntegral . length . filter id
+</pre>
+</section>
+
+<section>
+<h2>SELECTION & CROSSOVER</h2>
+<pre>
+<span class="fn">select</span> :: Population -> IO (Chromosome, Chromosome)
+select pop = <span class="kw">do</span>
+  <span class="kw">let</span> weighted = [(fitness c, c) | c <- pop]
+  a <- roulette weighted
+  b <- roulette weighted
+  return (a, b)
+
+<span class="fn">crossover</span> :: Chromosome -> Chromosome -> IO Chromosome
+crossover a b = <span class="kw">do</span>
+  point <- randomRIO (0, length a - 1)
+  return $ take point a ++ drop point b
+
+<span class="fn">mutate</span> :: <span class="ty">Double</span> -> Chromosome -> IO Chromosome
+mutate rate = mapM $ \g -> <span class="kw">do</span>
+  r <- randomRIO (0, 1)
+  return $ <span class="kw">if</span> r < rate <span class="kw">then</span> not g <span class="kw">else</span> g
+</pre>
+</section>
+
+<section>
+<h2>EVOLUTION</h2>
+<pre>
+<span class="fn">evolve</span> :: <span class="ty">Int</span> -> Population -> IO Population
+evolve 0 pop = return pop
+evolve n pop = <span class="kw">do</span>
+  offspring <- replicateM (length pop) $ <span class="kw">do</span>
+    (a, b) <- select pop
+    child  <- crossover a b
+    mutate 0.01 child
+  evolve (n-1) offspring
+</pre>
+</section>
+
+<footer>K:ai/genetic|B[6][1][0]</footer>
+</div>
+</body></html>

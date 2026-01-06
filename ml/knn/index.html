@@ -1,0 +1,41 @@
+<!-- K:mlknn01:1:76:k0:k1n2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ML: K-Nearest Neighbors</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>ML:<span>KNN</span></h1><p class="subtitle">B[5][0][2]</p></header>
+<nav><a href="../">← ml</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>K-NEAREST NEIGHBORS</h2>
+<pre>
+<span class="kw">type</span> Point = [<span class="ty">Double</span>]
+<span class="kw">type</span> Label = <span class="ty">String</span>
+<span class="kw">type</span> Dataset = [(Point, Label)]
+
+<span class="fn">distance</span> :: Point -> Point -> <span class="ty">Double</span>
+distance a b = sqrt . sum $ zipWith (\x y -> (x-y)^2) a b
+
+<span class="fn">knn</span> :: <span class="ty">Int</span> -> Dataset -> Point -> Label
+knn k dataset query = majority . map snd . take k . sortOn fst $
+  [(distance query p, l) | (p, l) <- dataset]
+  <span class="kw">where</span>
+    majority = head . maximumBy (comparing length) . group . sort
+</pre>
+</section>
+
+<section>
+<h2>EXAMPLE</h2>
+<pre>
+dataset = [([0,0], "A"), ([1,1], "A"), ([5,5], "B"), ([6,6], "B")]
+
+<span class="cmt">-- Classify point [2,2] with k=3</span>
+result = knn 3 dataset [2,2]  <span class="cmt">-- "A"</span>
+</pre>
+</section>
+
+<footer>K:ml/knn|B[5][0][2]</footer>
+</div>
+</body></html>

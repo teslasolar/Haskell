@@ -1,0 +1,54 @@
+<!-- K:aimini:1:80:k0:m1i2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI: Minimax</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>AI:<span>MINIMAX</span></h1><p class="subtitle">B[6][0][2]</p></header>
+<nav><a href="../">← ai</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>MINIMAX</h2>
+<pre>
+<span class="kw">data</span> Player = Max | Min
+
+<span class="fn">minimax</span> :: Player -> GameState -> <span class="ty">Int</span>
+minimax _ state | terminal state = evaluate state
+minimax Max state = maximum [minimax Min s | s <- moves state]
+minimax Min state = minimum [minimax Max s | s <- moves state]
+</pre>
+</section>
+
+<section>
+<h2>ALPHA-BETA PRUNING</h2>
+<pre>
+<span class="fn">alphabeta</span> :: Player -> <span class="ty">Int</span> -> <span class="ty">Int</span> -> GameState -> <span class="ty">Int</span>
+alphabeta _ α β state | terminal state = evaluate state
+alphabeta Max α β state = go α (moves state)
+  <span class="kw">where</span>
+    go α [] = α
+    go α (s:ss)
+      | α >= β = α
+      | otherwise = go (max α (alphabeta Min α β s)) ss
+alphabeta Min α β state = go β (moves state)
+  <span class="kw">where</span>
+    go β [] = β
+    go β (s:ss)
+      | α >= β = β
+      | otherwise = go (min β (alphabeta Max α β s)) ss
+</pre>
+</section>
+
+<section>
+<h2>BEST MOVE</h2>
+<pre>
+<span class="fn">bestMove</span> :: GameState -> GameState
+bestMove state = snd $ maximum
+  [(alphabeta Min minBound maxBound s, s) | s <- moves state]
+</pre>
+</section>
+
+<footer>K:ai/minimax|B[6][0][2]</footer>
+</div>
+</body></html>

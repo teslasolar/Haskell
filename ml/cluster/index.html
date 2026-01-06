@@ -1,0 +1,44 @@
+<!-- K:mlclus:1:75:k0:c1l2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ML: Clustering</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head><body>
+<div class="container">
+<header><h1>ML:<span>CLUSTER</span></h1><p class="subtitle">B[5][1][0]</p></header>
+<nav><a href="../">← ml</a> | <a href="../../">root</a></nav>
+
+<section>
+<h2>K-MEANS</h2>
+<pre>
+<span class="kw">type</span> Point = [<span class="ty">Double</span>]
+<span class="kw">type</span> Centroid = Point
+
+<span class="fn">kmeans</span> :: <span class="ty">Int</span> -> [Point] -> [Centroid]
+kmeans k points = iterate step initial !! 100
+  <span class="kw">where</span>
+    initial = take k points
+
+    step centroids = map centroid (assign centroids)
+
+    assign cs = groupBy ((==) `on` nearest cs) $
+                sortOn (nearest cs) points
+
+    nearest cs p = minimumBy (comparing (distance p)) cs
+
+    centroid ps = map (/ n) $ foldl1 (zipWith (+)) ps
+      <span class="kw">where</span> n = fromIntegral (length ps)
+</pre>
+</section>
+
+<section>
+<h2>DISTANCE</h2>
+<pre>
+<span class="fn">distance</span> :: Point -> Point -> <span class="ty">Double</span>
+distance a b = sqrt . sum $ zipWith (\x y -> (x-y)^2) a b
+</pre>
+</section>
+
+<footer>K:ml/cluster|B[5][1][0]</footer>
+</div>
+</body></html>
