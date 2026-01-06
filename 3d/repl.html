@@ -1,0 +1,489 @@
+<!-- K:3drepl:1:67:k0:r1e2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KONOMI:REPL</title>
+<link rel="stylesheet" href="../css/style.css">
+<script src="../config.js"></script>
+<script src="../core/blocks/block.js"></script>
+<script src="../core/compiler/haskell.js"></script>
+<style>
+body{display:flex;height:100vh;overflow:hidden}
+#editor-pane{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border)}
+#visual-pane{flex:1;display:flex;flex-direction:column;background:var(--bg)}
+#editor{flex:1;display:flex;flex-direction:column}
+#code{flex:1;width:100%;background:var(--surface);color:var(--text);border:none;padding:1rem;font-family:'Courier New',monospace;font-size:14px;resize:none;outline:none;line-height:1.6}
+#output{height:150px;background:var(--bg);border-top:1px solid var(--border);padding:1rem;overflow-y:auto;font-family:monospace;font-size:13px}
+.toolbar{display:flex;gap:0.5rem;padding:0.5rem;background:var(--surface);border-bottom:1px solid var(--border)}
+.toolbar button{background:var(--border);color:var(--text);border:none;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;border-radius:4px}
+.toolbar button:hover{background:var(--accent)}
+.toolbar button.primary{background:var(--green);color:var(--bg)}
+#ast-view{flex:1;padding:1rem;overflow:auto}
+#type-view{height:100px;background:var(--surface);border-top:1px solid var(--border);padding:1rem;overflow:auto}
+.ast-node{margin-left:1rem;padding:0.3rem;border-left:2px solid var(--border);margin-bottom:0.2rem}
+.ast-node:hover{background:var(--surface);border-color:var(--accent)}
+.ast-type{color:var(--purple);font-size:0.8rem}
+.ast-name{color:var(--green);font-weight:bold}
+.ast-value{color:var(--yellow)}
+.ast-keyword{color:var(--red)}
+.type-sig{color:var(--accent);font-size:1.1rem;margin-bottom:0.5rem}
+.type-explain{color:var(--muted);font-size:0.85rem}
+h3{color:var(--accent);margin:0 0 1rem;font-size:0.9rem;text-transform:uppercase}
+.error{color:var(--red)}
+.success{color:var(--green)}
+#history{max-height:200px;overflow-y:auto;padding:0.5rem;background:var(--bg);border-top:1px solid var(--border)}
+.history-item{padding:0.3rem;cursor:pointer;font-size:0.85rem;color:var(--muted)}
+.history-item:hover{color:var(--text);background:var(--surface)}
+#hints{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;display:none;z-index:100}
+.hint-item{padding:0.5rem 1rem;cursor:pointer}
+.hint-item:hover{background:var(--border)}
+.hint-item .hint-type{color:var(--purple);font-size:0.8rem;margin-left:1rem}
+</style>
+</head><body>
+<div id="editor-pane">
+<div class="toolbar">
+<button class="primary" onclick="REPL.run()">Run (Ctrl+Enter)</button>
+<button onclick="REPL.parse()">Parse AST</button>
+<button onclick="REPL.typeCheck()">Type Check</button>
+<button onclick="REPL.clear()">Clear</button>
+<span style="flex:1"></span>
+<button onclick="location.href='../'">Exit</button>
+</div>
+<div id="editor">
+<textarea id="code" placeholder="-- Enter Haskell code...
+-- Examples:
+double x = x * 2
+main = putStrLn &quot;Hello&quot;
+">-- Welcome to KONOMI REPL
+-- Type Haskell code and see it visualized
+
+double :: Int -> Int
+double x = x * 2
+
+square :: Int -> Int
+square x = x * x
+
+compose :: (b -> c) -> (a -> b) -> a -> c
+compose f g x = f (g x)
+
+-- Try: compose double square 3
+main = print (compose double square 3)
+</textarea>
+<div id="hints"></div>
+</div>
+<div id="output"><span class="success">Ready. Press Ctrl+Enter to run.</span></div>
+<div id="history"></div>
+</div>
+
+<div id="visual-pane">
+<div id="ast-view">
+<h3>Abstract Syntax Tree</h3>
+<div id="ast"></div>
+</div>
+<div id="type-view">
+<h3>Type Information</h3>
+<div id="types"></div>
+</div>
+</div>
+
+<script>
+const REPL = {
+  history: [],
+  historyIndex: -1,
+
+  init() {
+    const code = document.getElementById('code');
+
+    // Keyboard shortcuts
+    code.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        this.run();
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        this.insertTab();
+      }
+      if (e.ctrlKey && e.key === 'ArrowUp') {
+        this.historyBack();
+      }
+      if (e.ctrlKey && e.key === 'ArrowDown') {
+        this.historyForward();
+      }
+    });
+
+    // Auto-parse on change
+    let debounce;
+    code.addEventListener('input', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => this.parse(), 500);
+    });
+
+    // Initial parse
+    this.parse();
+  },
+
+  getCode() {
+    return document.getElementById('code').value;
+  },
+
+  setOutput(html, isError = false) {
+    const out = document.getElementById('output');
+    out.innerHTML = `<span class="${isError ? 'error' : 'success'}">${html}</span>`;
+  },
+
+  run() {
+    const src = this.getCode();
+    this.addHistory(src);
+
+    try {
+      // Use HASKELL compiler if available
+      if (window.HASKELL) {
+        const result = HASKELL.evaluate(src);
+        this.setOutput(`<pre>${this.escapeHtml(JSON.stringify(result, null, 2))}</pre>`);
+      } else {
+        this.setOutput('HASKELL compiler not loaded');
+      }
+      this.parse();
+    } catch (e) {
+      this.setOutput(this.escapeHtml(e.message), true);
+    }
+  },
+
+  parse() {
+    const src = this.getCode();
+    const astDiv = document.getElementById('ast');
+
+    try {
+      const ast = this.parseHaskell(src);
+      astDiv.innerHTML = this.renderAST(ast);
+      this.extractTypes(ast);
+    } catch (e) {
+      astDiv.innerHTML = `<span class="error">${this.escapeHtml(e.message)}</span>`;
+    }
+  },
+
+  parseHaskell(src) {
+    const ast = { type: 'Module', declarations: [] };
+    const lines = src.split('\n');
+
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t || t.startsWith('--')) continue;
+
+      // Type signature
+      if (t.includes(' :: ')) {
+        const [name, sig] = t.split(' :: ');
+        ast.declarations.push({
+          type: 'TypeSig',
+          name: name.trim(),
+          signature: sig.trim()
+        });
+      }
+      // Function definition
+      else if (t.includes(' = ')) {
+        const eqIdx = t.indexOf(' = ');
+        const lhs = t.slice(0, eqIdx);
+        const rhs = t.slice(eqIdx + 3);
+        const parts = lhs.split(/\s+/);
+        const name = parts[0];
+        const params = parts.slice(1);
+
+        ast.declarations.push({
+          type: 'FunDef',
+          name,
+          params,
+          body: this.parseExpr(rhs)
+        });
+      }
+      // Import
+      else if (t.startsWith('import ')) {
+        ast.declarations.push({
+          type: 'Import',
+          module: t.slice(7).split(/\s/)[0]
+        });
+      }
+      // Module
+      else if (t.startsWith('module ')) {
+        ast.module = t.match(/module\s+(\S+)/)?.[1];
+      }
+    }
+
+    return ast;
+  },
+
+  parseExpr(str) {
+    str = str.trim();
+
+    // Application
+    if (str.includes(' ') && !str.startsWith('(') && !str.startsWith('"')) {
+      const parts = this.tokenize(str);
+      if (parts.length > 1) {
+        return {
+          type: 'App',
+          func: this.parseExpr(parts[0]),
+          args: parts.slice(1).map(p => this.parseExpr(p))
+        };
+      }
+    }
+
+    // Lambda
+    if (str.startsWith('\\')) {
+      const match = str.match(/^\\(.+?)\s*->\s*(.+)$/);
+      if (match) {
+        return {
+          type: 'Lambda',
+          param: match[1],
+          body: this.parseExpr(match[2])
+        };
+      }
+    }
+
+    // Infix operator
+    const ops = ['+', '-', '*', '/', '==', '/=', '<', '>', '<=', '>=', '&&', '||', '.', '$'];
+    for (const op of ops) {
+      const idx = str.lastIndexOf(` ${op} `);
+      if (idx > 0) {
+        return {
+          type: 'Infix',
+          op,
+          left: this.parseExpr(str.slice(0, idx)),
+          right: this.parseExpr(str.slice(idx + op.length + 2))
+        };
+      }
+    }
+
+    // Literal number
+    if (/^-?\d+(\.\d+)?$/.test(str)) {
+      return { type: 'Lit', value: parseFloat(str), litType: str.includes('.') ? 'Double' : 'Int' };
+    }
+
+    // String literal
+    if (str.startsWith('"') && str.endsWith('"')) {
+      return { type: 'Lit', value: str.slice(1, -1), litType: 'String' };
+    }
+
+    // Variable/function reference
+    return { type: 'Var', name: str };
+  },
+
+  tokenize(str) {
+    const tokens = [];
+    let current = '';
+    let depth = 0;
+    let inString = false;
+
+    for (const ch of str) {
+      if (ch === '"') inString = !inString;
+      if (!inString) {
+        if (ch === '(') depth++;
+        if (ch === ')') depth--;
+        if (ch === ' ' && depth === 0 && current) {
+          tokens.push(current);
+          current = '';
+          continue;
+        }
+      }
+      current += ch;
+    }
+    if (current) tokens.push(current);
+    return tokens;
+  },
+
+  renderAST(node, indent = 0) {
+    if (!node) return '';
+
+    const pad = '  '.repeat(indent);
+    let html = `<div class="ast-node">`;
+
+    switch (node.type) {
+      case 'Module':
+        html += `<span class="ast-keyword">module</span> ${node.module || 'Main'}`;
+        node.declarations.forEach(d => {
+          html += this.renderAST(d, indent + 1);
+        });
+        break;
+
+      case 'TypeSig':
+        html += `<span class="ast-name">${node.name}</span> <span class="ast-type">:: ${node.signature}</span>`;
+        break;
+
+      case 'FunDef':
+        html += `<span class="ast-keyword">def</span> <span class="ast-name">${node.name}</span>`;
+        if (node.params.length) {
+          html += ` <span class="ast-value">${node.params.join(' ')}</span>`;
+        }
+        html += this.renderAST(node.body, indent + 1);
+        break;
+
+      case 'App':
+        html += `<span class="ast-keyword">apply</span>`;
+        html += this.renderAST(node.func, indent + 1);
+        node.args.forEach(a => {
+          html += this.renderAST(a, indent + 1);
+        });
+        break;
+
+      case 'Infix':
+        html += `<span class="ast-keyword">op</span> <span class="ast-value">${node.op}</span>`;
+        html += this.renderAST(node.left, indent + 1);
+        html += this.renderAST(node.right, indent + 1);
+        break;
+
+      case 'Lambda':
+        html += `<span class="ast-keyword">λ</span> <span class="ast-value">${node.param}</span> →`;
+        html += this.renderAST(node.body, indent + 1);
+        break;
+
+      case 'Lit':
+        html += `<span class="ast-type">${node.litType}</span> <span class="ast-value">${node.value}</span>`;
+        break;
+
+      case 'Var':
+        html += `<span class="ast-name">${node.name}</span>`;
+        break;
+
+      case 'Import':
+        html += `<span class="ast-keyword">import</span> ${node.module}`;
+        break;
+
+      default:
+        html += JSON.stringify(node);
+    }
+
+    html += '</div>';
+    return html;
+  },
+
+  extractTypes(ast) {
+    const typesDiv = document.getElementById('types');
+    const types = [];
+
+    ast.declarations.forEach(d => {
+      if (d.type === 'TypeSig') {
+        types.push({
+          name: d.name,
+          sig: d.signature,
+          explain: this.explainType(d.signature)
+        });
+      }
+    });
+
+    if (types.length === 0) {
+      typesDiv.innerHTML = '<span class="type-explain">No type signatures found. Add them with :: syntax.</span>';
+      return;
+    }
+
+    typesDiv.innerHTML = types.map(t => `
+      <div class="type-sig">${t.name} :: ${t.sig}</div>
+      <div class="type-explain">${t.explain}</div>
+    `).join('<hr style="border-color:var(--border);margin:0.5rem 0">');
+  },
+
+  explainType(sig) {
+    const parts = sig.split(' -> ');
+
+    if (parts.length === 1) {
+      return `Returns a value of type ${parts[0]}`;
+    }
+
+    const inputs = parts.slice(0, -1);
+    const output = parts[parts.length - 1];
+
+    const inputStr = inputs.map((t, i) => `arg${i+1}: ${t}`).join(', ');
+    return `Takes ${inputs.length} argument${inputs.length > 1 ? 's' : ''} (${inputStr}) and returns ${output}`;
+  },
+
+  typeCheck() {
+    const src = this.getCode();
+    const typesDiv = document.getElementById('types');
+
+    try {
+      const ast = this.parseHaskell(src);
+      const sigs = new Map();
+      const defs = new Map();
+
+      // Collect signatures and definitions
+      ast.declarations.forEach(d => {
+        if (d.type === 'TypeSig') sigs.set(d.name, d.signature);
+        if (d.type === 'FunDef') defs.set(d.name, d);
+      });
+
+      // Check each definition has a signature
+      const warnings = [];
+      defs.forEach((def, name) => {
+        if (!sigs.has(name)) {
+          warnings.push(`⚠ ${name} has no type signature`);
+        }
+      });
+
+      // Check signatures have implementations
+      sigs.forEach((sig, name) => {
+        if (!defs.has(name)) {
+          warnings.push(`⚠ ${name} :: ${sig} has no implementation`);
+        }
+      });
+
+      if (warnings.length === 0) {
+        typesDiv.innerHTML = '<span class="success">✓ All functions have type signatures and implementations</span>';
+      } else {
+        typesDiv.innerHTML = warnings.map(w => `<div class="error">${w}</div>`).join('');
+      }
+    } catch (e) {
+      typesDiv.innerHTML = `<span class="error">${this.escapeHtml(e.message)}</span>`;
+    }
+  },
+
+  insertTab() {
+    const code = document.getElementById('code');
+    const start = code.selectionStart;
+    const end = code.selectionEnd;
+    code.value = code.value.slice(0, start) + '  ' + code.value.slice(end);
+    code.selectionStart = code.selectionEnd = start + 2;
+  },
+
+  addHistory(src) {
+    this.history.push(src);
+    this.historyIndex = this.history.length;
+
+    const historyDiv = document.getElementById('history');
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.textContent = src.split('\n')[0].slice(0, 50) + '...';
+    item.onclick = () => {
+      document.getElementById('code').value = src;
+      this.parse();
+    };
+    historyDiv.insertBefore(item, historyDiv.firstChild);
+  },
+
+  historyBack() {
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      document.getElementById('code').value = this.history[this.historyIndex];
+      this.parse();
+    }
+  },
+
+  historyForward() {
+    if (this.historyIndex < this.history.length - 1) {
+      this.historyIndex++;
+      document.getElementById('code').value = this.history[this.historyIndex];
+      this.parse();
+    }
+  },
+
+  clear() {
+    document.getElementById('code').value = '';
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('ast').innerHTML = '';
+    document.getElementById('types').innerHTML = '';
+  },
+
+  escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => REPL.init());
+</script>
+</body></html>

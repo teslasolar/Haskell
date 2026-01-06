@@ -1,0 +1,395 @@
+<!-- K:3dacad:1:66:k0:a1c2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KONOMI:ACADEMY 3D</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../academy/levels.js"></script>
+<script src="../academy/progress.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;font-family:'Courier New',monospace;background:#0a0a0f}
+#hud{position:fixed;top:0;left:0;right:0;padding:1rem;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(10,10,15,0.95),transparent);z-index:100}
+#hud h1{color:#00ff88;font-size:1.2rem}
+#stats{display:flex;gap:1rem}
+.stat{background:rgba(0,255,136,0.1);padding:0.5rem 1rem;border-radius:4px;border:1px solid #00ff88}
+.stat-label{color:#888;font-size:0.75rem}
+.stat-value{color:#00ff88;font-size:1.2rem;font-weight:bold}
+#challenge-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:200}
+#challenge-box{background:#1a1a2e;border:2px solid #00ff88;border-radius:12px;padding:2rem;max-width:500px;width:90%}
+#challenge-box h2{color:#00ff88;margin-bottom:1rem}
+#challenge-box p{color:#fff;margin-bottom:1rem;line-height:1.6}
+#challenge-box .hint{color:#ffaa00;font-size:0.9rem;margin-bottom:1rem;display:none}
+#challenge-box textarea{width:100%;height:100px;background:#0a0a0f;color:#fff;border:1px solid #333;padding:1rem;font-family:monospace;margin-bottom:1rem;resize:none}
+#challenge-box .buttons{display:flex;gap:1rem}
+#challenge-box button{flex:1;padding:0.75rem;border:none;cursor:pointer;font-family:inherit;border-radius:4px}
+#challenge-box .submit{background:#00ff88;color:#0a0a0f}
+#challenge-box .hint-btn{background:#333;color:#ffaa00}
+#challenge-box .close{background:#333;color:#fff}
+#result{padding:1rem;border-radius:4px;margin-top:1rem;display:none}
+#result.success{background:rgba(0,255,136,0.2);color:#00ff88}
+#result.error{background:rgba(255,68,136,0.2);color:#ff4488}
+#portal-label{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);padding:1rem 2rem;border-radius:8px;color:#fff;display:none;text-align:center}
+#portal-label h3{color:#00ff88;margin-bottom:0.5rem}
+#instructions{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);color:#666;font-size:0.75rem}
+</style>
+</head><body>
+<div id="hud">
+<h1>KONOMI:ACADEMY</h1>
+<div id="stats">
+<div class="stat"><div class="stat-label">XP</div><div class="stat-value" id="xp">0</div></div>
+<div class="stat"><div class="stat-label">LEVEL</div><div class="stat-value" id="level">0</div></div>
+<div class="stat"><div class="stat-label">PROGRESS</div><div class="stat-value" id="progress">0%</div></div>
+</div>
+<button onclick="location.href='../'" style="background:#333;color:#fff;border:none;padding:0.5rem 1rem;cursor:pointer">Exit</button>
+</div>
+
+<div id="portal-label">
+<h3 id="portal-name">Portal</h3>
+<p id="portal-desc">Description</p>
+<p style="color:#ffaa00;font-size:0.8rem">Click to enter</p>
+</div>
+
+<div id="challenge-modal">
+<div id="challenge-box">
+<h2 id="ch-title">Challenge</h2>
+<p id="ch-prompt"></p>
+<p class="hint" id="ch-hint"></p>
+<textarea id="ch-input" placeholder="ghci> "></textarea>
+<div id="result"></div>
+<div class="buttons">
+<button class="hint-btn" onclick="showHint()">Hint</button>
+<button class="submit" onclick="submitChallenge()">Submit</button>
+<button class="close" onclick="closeModal()">Close</button>
+</div>
+</div>
+</div>
+
+<div id="instructions">WASD to move • Mouse to look • Click portal to enter challenge</div>
+
+<div id="container"></div>
+
+<script>
+// 3D Academy World
+const ACADEMY3D = {
+  scene: null,
+  camera: null,
+  renderer: null,
+  controls: null,
+  portals: [],
+  currentPortal: null,
+  currentChallenge: null,
+  challengeIdx: 0,
+
+  init() {
+    // Scene
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x050508);
+
+    // Starfield
+    this.createStars();
+
+    // Camera
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    this.camera.position.set(0, 5, 30);
+
+    // Renderer
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    document.getElementById('container').appendChild(this.renderer.domElement);
+
+    // Controls
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.maxDistance = 100;
+
+    // Lighting
+    const ambient = new THREE.AmbientLight(0x404040, 0.3);
+    this.scene.add(ambient);
+
+    // Create level portals
+    this.createPortals();
+
+    // Floor grid
+    const grid = new THREE.GridHelper(200, 40, 0x00ff88, 0x111122);
+    grid.position.y = -5;
+    this.scene.add(grid);
+
+    // Events
+    window.addEventListener('resize', () => this.resize());
+    this.renderer.domElement.addEventListener('click', () => this.onClick());
+    this.renderer.domElement.addEventListener('mousemove', (e) => this.onHover(e));
+
+    // Update stats
+    this.updateStats();
+
+    // Animate
+    this.animate();
+  },
+
+  createStars() {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    for (let i = 0; i < 5000; i++) {
+      vertices.push(
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000
+      );
+    }
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+    this.scene.add(new THREE.Points(geometry, material));
+  },
+
+  createPortals() {
+    const levelData = [
+      { id: 'basics', pos: [-20, 0, 0], color: 0x00ff88 },
+      { id: 'types', pos: [-10, 0, -15], color: 0x4a9eff },
+      { id: 'lists', pos: [0, 0, -25], color: 0xff4488 },
+      { id: 'hof', pos: [10, 0, -15], color: 0xffaa00 },
+      { id: 'typeclasses', pos: [20, 0, 0], color: 0x8844ff },
+      { id: 'monads', pos: [10, 5, 15], color: 0x44ffaa },
+      { id: 'master', pos: [0, 10, 25], color: 0xffffff }
+    ];
+
+    levelData.forEach(data => {
+      const level = LEVELS[data.id];
+      if (!level) return;
+
+      const unlocked = PROGRESS.isLevelUnlocked(data.id);
+      const complete = PROGRESS.isLevelComplete(data.id);
+
+      // Portal ring
+      const geometry = new THREE.TorusGeometry(3, 0.3, 16, 50);
+      const material = new THREE.MeshPhongMaterial({
+        color: complete ? 0x00ff88 : (unlocked ? data.color : 0x333333),
+        emissive: complete ? 0x00ff88 : (unlocked ? data.color : 0x111111),
+        emissiveIntensity: unlocked ? 0.5 : 0.1,
+        transparent: true,
+        opacity: unlocked ? 1 : 0.3
+      });
+      const ring = new THREE.Mesh(geometry, material);
+      ring.position.set(...data.pos);
+      ring.rotation.y = Math.PI / 4;
+
+      // Inner glow
+      const innerGeom = new THREE.CircleGeometry(2.5, 32);
+      const innerMat = new THREE.MeshBasicMaterial({
+        color: data.color,
+        transparent: true,
+        opacity: unlocked ? 0.3 : 0.05,
+        side: THREE.DoubleSide
+      });
+      const inner = new THREE.Mesh(innerGeom, innerMat);
+      inner.position.set(...data.pos);
+      inner.rotation.y = Math.PI / 4;
+
+      // Light
+      if (unlocked) {
+        const light = new THREE.PointLight(data.color, 1, 15);
+        light.position.set(...data.pos);
+        this.scene.add(light);
+      }
+
+      // Label
+      this.addLabel(ring, level.name, complete ? '✓' : (unlocked ? '' : '🔒'));
+
+      ring.userData = {
+        levelId: data.id,
+        level,
+        unlocked,
+        complete
+      };
+
+      this.scene.add(ring);
+      this.scene.add(inner);
+      this.portals.push(ring);
+    });
+
+    // Connect portals with lines
+    for (let i = 0; i < this.portals.length - 1; i++) {
+      const p1 = this.portals[i].position;
+      const p2 = this.portals[i + 1].position;
+      const geometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const material = new THREE.LineBasicMaterial({
+        color: 0x00ff88,
+        opacity: 0.2,
+        transparent: true
+      });
+      this.scene.add(new THREE.Line(geometry, material));
+    }
+  },
+
+  addLabel(mesh, text, badge = '') {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 256;
+    canvas.height = 64;
+
+    ctx.font = 'bold 28px monospace';
+    ctx.fillStyle = '#00ff88';
+    ctx.textAlign = 'center';
+    ctx.fillText(text + ' ' + badge, 128, 40);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(8, 2, 1);
+    sprite.position.y = 5;
+    mesh.add(sprite);
+  },
+
+  onHover(event) {
+    const mouse = new THREE.Vector2(
+      (event.clientX / window.innerWidth) * 2 - 1,
+      -(event.clientY / window.innerHeight) * 2 + 1
+    );
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this.camera);
+    const intersects = raycaster.intersectObjects(this.portals);
+
+    const label = document.getElementById('portal-label');
+
+    if (intersects.length > 0) {
+      const portal = intersects[0].object;
+      const data = portal.userData;
+
+      document.getElementById('portal-name').textContent = data.level.name;
+      document.getElementById('portal-desc').textContent = data.complete ? 'COMPLETED' :
+        (data.unlocked ? data.level.desc : 'Complete previous level to unlock');
+      label.style.display = 'block';
+      document.body.style.cursor = 'pointer';
+
+      this.currentPortal = portal;
+    } else {
+      label.style.display = 'none';
+      document.body.style.cursor = 'default';
+      this.currentPortal = null;
+    }
+  },
+
+  onClick() {
+    if (!this.currentPortal) return;
+
+    const data = this.currentPortal.userData;
+    if (!data.unlocked) {
+      alert('Complete the previous level first!');
+      return;
+    }
+    if (data.complete) {
+      alert('Level already completed! +' + data.level.totalXP + ' XP earned.');
+      return;
+    }
+
+    // Start challenge
+    this.startChallenge(data.levelId);
+  },
+
+  startChallenge(levelId) {
+    const level = LEVELS[levelId];
+    const p = PROGRESS.load();
+    const done = p.completed[levelId] || [];
+
+    // Find first incomplete challenge
+    this.challengeIdx = 0;
+    for (let i = 0; i < level.challenges.length; i++) {
+      if (!done.includes(level.challenges[i].id)) {
+        this.challengeIdx = i;
+        break;
+      }
+    }
+
+    this.currentChallenge = { levelId, level };
+    this.showChallenge();
+  },
+
+  showChallenge() {
+    const { level } = this.currentChallenge;
+    const ch = level.challenges[this.challengeIdx];
+
+    document.getElementById('ch-title').textContent = `${level.name} - ${this.challengeIdx + 1}/${level.challenges.length}`;
+    document.getElementById('ch-prompt').textContent = ch.prompt;
+    document.getElementById('ch-hint').textContent = 'Hint: ' + ch.hint;
+    document.getElementById('ch-hint').style.display = 'none';
+    document.getElementById('ch-input').value = '';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('challenge-modal').style.display = 'flex';
+  },
+
+  updateStats() {
+    const stats = PROGRESS.stats();
+    document.getElementById('xp').textContent = stats.xp;
+    document.getElementById('level').textContent = stats.level;
+    document.getElementById('progress').textContent = stats.percent + '%';
+  },
+
+  resize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  },
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.controls.update();
+
+    // Rotate portals
+    this.portals.forEach((portal, i) => {
+      portal.rotation.z += 0.005;
+      portal.position.y += Math.sin(Date.now() * 0.001 + i) * 0.002;
+    });
+
+    this.renderer.render(this.scene, this.camera);
+  }
+};
+
+function showHint() {
+  document.getElementById('ch-hint').style.display = 'block';
+}
+
+function submitChallenge() {
+  const { levelId, level } = ACADEMY3D.currentChallenge;
+  const ch = level.challenges[ACADEMY3D.challengeIdx];
+  const input = document.getElementById('ch-input').value;
+  const result = document.getElementById('result');
+
+  if (ch.check(input)) {
+    result.className = 'success';
+    result.textContent = `✓ Correct! +${ch.xp} XP`;
+    result.style.display = 'block';
+
+    PROGRESS.complete(levelId, ch.id, ch.xp);
+
+    if (PROGRESS.isLevelComplete(levelId)) {
+      PROGRESS.unlockFeatures(levelId);
+      setTimeout(() => {
+        alert(`🎉 ${level.name} COMPLETE!\nUnlocked: ${level.unlocks.join(', ')}`);
+        closeModal();
+        location.reload();
+      }, 1000);
+    } else {
+      setTimeout(() => {
+        ACADEMY3D.challengeIdx++;
+        ACADEMY3D.showChallenge();
+      }, 1000);
+    }
+
+    ACADEMY3D.updateStats();
+  } else {
+    result.className = 'error';
+    result.textContent = '✗ Try again...';
+    result.style.display = 'block';
+  }
+}
+
+function closeModal() {
+  document.getElementById('challenge-modal').style.display = 'none';
+  ACADEMY3D.currentChallenge = null;
+}
+
+window.addEventListener('load', () => ACADEMY3D.init());
+</script>
+</body></html>

@@ -48,7 +48,10 @@ const KONOMI = {
     'ai/genetic':  [6,1,0],
     'ai/nn':       [6,1,1],
     'ai/rl':       [6,1,2],
-    'academy':     [7,0,0]
+    'academy':     [7,0,0],
+    '3d':          [8,0,0],
+    '3d/repl':     [8,0,1],
+    '3d/academy':  [8,0,2]
   },
 
   // Initialize block at coordinate
