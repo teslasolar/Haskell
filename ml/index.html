@@ -1,0 +1,37 @@
+<!-- K:ml0001:1:20:k0:b3c4 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ML | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>ML ALGORITHMS B[5][0][z]</h2>
+<pre><span class="cm">Pure functional ML implementations</span>
+
+B[5][0][0] <a href="./">index</a>        ML hub
+B[5][0][1] <a href="linear.html">linear</a>       Linear regression
+B[5][0][2] <a href="knn.html">knn</a>          K-nearest neighbors
+B[5][0][3] <a href="tree.html">tree</a>         Decision tree
+B[5][1][0] <a href="cluster.html">cluster</a>      K-means clustering
+B[5][1][1] <a href="naive.html">naive</a>        Naive Bayes
+B[5][1][2] <a href="pca.html">pca</a>          PCA dimensionality</pre>
+</section>
+<section>
+<h2>FUNCTIONAL ML PATTERNS</h2>
+<pre><span class="kw">type</span> <span class="ty">Model</span> a b = a <span class="op">-></span> b
+<span class="kw">type</span> <span class="ty">Train</span> a b = [(<span class="ty">a</span>,<span class="ty">b</span>)] <span class="op">-></span> <span class="ty">Model</span> a b
+<span class="kw">type</span> <span class="ty">Loss</span> b = b <span class="op">-></span> b <span class="op">-></span> <span class="ty">Double</span>
+
+<span class="fn">fit</span> <span class="op">::</span> <span class="ty">Train</span> a b <span class="op">-></span> [(<span class="ty">a</span>,<span class="ty">b</span>)] <span class="op">-></span> <span class="ty">Model</span> a b
+<span class="fn">predict</span> <span class="op">::</span> <span class="ty">Model</span> a b <span class="op">-></span> a <span class="op">-></span> b
+<span class="fn">score</span> <span class="op">::</span> <span class="ty">Loss</span> b <span class="op">-></span> <span class="ty">Model</span> a b <span class="op">-></span> [(<span class="ty">a</span>,<span class="ty">b</span>)] <span class="op">-></span> <span class="ty">Double</span></pre>
+</section>
+</div>
+</body>
+</html>

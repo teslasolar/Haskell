@@ -1,0 +1,37 @@
+<!-- K:ai0001:1:30:k0:e5f6 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>AI ALGORITHMS B[6][0][z]</h2>
+<pre><span class="cm">Pure functional AI implementations</span>
+
+B[6][0][0] <a href="./">index</a>        AI hub
+B[6][0][1] <a href="search.html">search</a>       A*, BFS, DFS
+B[6][0][2] <a href="minimax.html">minimax</a>      Game tree search
+B[6][0][3] <a href="genetic.html">genetic</a>      Genetic algorithm
+B[6][1][0] <a href="nn.html">nn</a>           Neural network
+B[6][1][1] <a href="rl.html">rl</a>           Q-learning
+B[6][1][2] <a href="nlp.html">nlp</a>          Text processing</pre>
+</section>
+<section>
+<h2>FUNCTIONAL AI PATTERNS</h2>
+<pre><span class="kw">type</span> <span class="ty">State</span> s = s
+<span class="kw">type</span> <span class="ty">Action</span> a = a
+<span class="kw">type</span> <span class="ty">Agent</span> s a = <span class="ty">State</span> s <span class="op">-></span> <span class="ty">Action</span> a
+<span class="kw">type</span> <span class="ty">Env</span> s a = (<span class="ty">State</span> s, <span class="ty">Action</span> a) <span class="op">-></span> <span class="ty">State</span> s
+
+<span class="fn">step</span> <span class="op">::</span> <span class="ty">Env</span> s a <span class="op">-></span> <span class="ty">Agent</span> s a <span class="op">-></span> <span class="ty">State</span> s <span class="op">-></span> <span class="ty">State</span> s
+<span class="fn">run</span> <span class="op">::</span> <span class="ty">Env</span> s a <span class="op">-></span> <span class="ty">Agent</span> s a <span class="op">-></span> <span class="ty">State</span> s <span class="op">-></span> [<span class="ty">State</span> s]</pre>
+</section>
+</div>
+</body>
+</html>

@@ -1,3 +1,4 @@
+<!-- K:index01:2:50:k0:a1b2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,22 +19,21 @@
 
 <nav>
 <a href="meta/">META</a>
-<a href="primitives/">PRIMITIVES</a>
 <a href="types/">TYPES</a>
-<a href="expressions/">EXPRESSIONS</a>
-<a href="lists/">LISTS</a>
+<a href="expressions/">EXPR</a>
 <a href="hof/">HOF</a>
-<a href="typeclasses/">TYPECLASSES</a>
 <a href="monads/">MONADS</a>
 <a href="io/">IO</a>
-<a href="modules/">MODULES</a>
-<a href="advanced/">ADVANCED</a>
+<a href="ml/">ML</a>
+<a href="ai/">AI</a>
+<a href="core/">CORE</a>
+<a href="api/">API</a>
 </nav>
 
 <section>
 <h2>COMPILER / RUNNER</h2>
 <div id="compiler">
-<textarea id="src" rows="6" placeholder="-- Enter Haskell code">main = putStrLn "Hello, KONOMI!"</textarea>
+<textarea id="src" rows="5" placeholder="-- Haskell">main = putStrLn "Hello, KONOMI!"</textarea>
 <div class="toolbar">
 <button onclick="HASKELL.run()">Run</button>
 <button onclick="HASKELL.parse()">Parse</button>
@@ -41,7 +41,6 @@
 <select id="mode" onchange="HASKELL.config.mode=this.value">
 <option value="local">Local</option>
 <option value="api">API</option>
-<option value="cli">CLI</option>
 <option value="mcp">MCP</option>
 </select>
 </div>
@@ -50,34 +49,32 @@
 </section>
 
 <section>
-<h2>BLOCK ARRAY B[x][y][z]</h2>
+<h2>B[x][y][z] BLOCK ARRAY</h2>
 <pre>
-<span class="cm">LAYERS</span>                    <span class="cm">SYSTEM</span>
-B[1][0][0] <a href="meta/">meta</a>          B[3][0][0] <a href="core/">core</a>
-B[1][1][0] <a href="primitives/">primitives</a>    B[3][0][1] <a href="core/blocks/">blocks</a>
-B[1][1][1] <a href="types/">types</a>         B[3][1][0] <a href="core/templates/">templates</a>
-B[1][2][0] <a href="expressions/">expressions</a>   B[3][1][1] <a href="core/compiler/">compiler</a>
-B[1][2][1] <a href="lists/">lists</a>         B[4][0][0] <a href="api/">api</a>
-B[1][3][0] <a href="hof/">hof</a>           B[4][0][1] <a href="cli/">cli</a>
-B[1][3][1] <a href="typeclasses/">typeclasses</a>   B[4][1][0] <a href="mcp/">mcp</a>
-B[1][4][0] <a href="monads/">monads</a>
-B[1][4][1] <a href="io/">io</a>            <span class="cm">REF</span>
-B[1][5][0] <a href="modules/">modules</a>       B[2][0][0] <a href="quickstart/">quickstart</a>
-B[1][5][1] <a href="advanced/">advanced</a>      B[2][0][1] <a href="invariants/">invariants</a>
-                          B[2][1][0] <a href="crosswalk/">crosswalk</a>
+<span class="cm">LANG</span>                 <span class="cm">SYSTEM</span>              <span class="cm">ML/AI</span>
+B[1][0][0] <a href="meta/">meta</a>     B[3][0][0] <a href="core/">core</a>     B[5][0][0] <a href="ml/">ml</a>
+B[1][1][0] <a href="primitives/">prims</a>    B[3][0][1] <a href="core/blocks/">blocks</a>   B[5][0][1] linear
+B[1][1][1] <a href="types/">types</a>    B[3][1][0] <a href="core/templates/">tmpl</a>     B[5][0][2] knn
+B[1][2][0] <a href="expressions/">expr</a>     B[3][1][1] <a href="core/compiler/">compile</a>  B[5][1][0] cluster
+B[1][3][0] <a href="hof/">hof</a>      B[4][0][0] <a href="api/">api</a>      B[6][0][0] <a href="ai/">ai</a>
+B[1][4][0] <a href="monads/">monads</a>   B[4][0][1] <a href="cli/">cli</a>      B[6][0][1] search
+B[1][4][1] <a href="io/">io</a>       B[4][1][0] <a href="mcp/">mcp</a>      B[6][1][0] genetic
+B[1][5][0] <a href="modules/">modules</a>  B[0][0][1] <a href="spec/">spec</a>     B[6][1][1] nn
 </pre>
 </section>
 
 <section>
-<h2>SERVICES</h2>
+<h2>ENTRY POINTS</h2>
 <pre>
-<span class="ty">API</span>  <a href="api/">/api</a>     POST /run, /eval, /compile, /type
-<span class="ty">CLI</span>  <a href="cli/">/cli</a>     konomi run|eval|compile|repl|serve
-<span class="ty">MCP</span>  <a href="mcp/">/mcp</a>     haskell_run, haskell_eval, konomi_block
+<span class="ty">README</span>  node README.md [help|run|serve|ml|ai]
+<span class="ty">API</span>     POST /api/run {src} → {output}
+<span class="ty">CLI</span>     konomi run|eval|compile|repl
+<span class="ty">MCP</span>     haskell_run, konomi_block
+<span class="ty">PAGES</span>   KONOMI_MODE=pages node README.md
 </pre>
 </section>
 
-<footer>KONOMI:HASKELL v1.0 | B[0][0][0]</footer>
+<footer>K:index01:2:50:k0 | B[0][0][0]</footer>
 </div>
 
 <style>
@@ -86,7 +83,7 @@ B[1][5][1] <a href="advanced/">advanced</a>      B[2][0][1] <a href="invariants/
 .toolbar{display:flex;gap:.5rem;flex-wrap:wrap}
 .toolbar button,.toolbar select{background:var(--border);color:var(--text);border:none;padding:.4rem .8rem;cursor:pointer;border-radius:4px;font-family:inherit}
 .toolbar button:hover{background:var(--accent)}
-#out{min-height:60px;background:var(--bg);border:1px solid var(--border);padding:.75rem;margin:0;white-space:pre-wrap}
+#out{min-height:50px;background:var(--bg);border:1px solid var(--border);padding:.75rem;margin:0;white-space:pre-wrap}
 </style>
 </body>
 </html>

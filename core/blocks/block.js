@@ -1,3 +1,4 @@
+/*! K:block01:2:40:k0:b1c2 !*/
 /**
  * KONOMI 3D Block Array System
  * Directories as coordinate-addressable blocks
@@ -10,6 +11,7 @@ const KONOMI = {
   // Directory to coordinate mapping
   MAP: {
     'root':        [0,0,0],
+    'spec':        [0,0,1],
     'meta':        [1,0,0],
     'legend':      [1,0,1],
     'primitives':  [1,1,0],
@@ -32,7 +34,18 @@ const KONOMI = {
     'api':         [4,0,0],
     'cli':         [4,0,1],
     'mcp':         [4,1,0],
-    'runtime':     [4,1,1]
+    'runtime':     [4,1,1],
+    'ml':          [5,0,0],
+    'ml/linear':   [5,0,1],
+    'ml/knn':      [5,0,2],
+    'ml/cluster':  [5,1,0],
+    'ml/naive':    [5,1,1],
+    'ai':          [6,0,0],
+    'ai/search':   [6,0,1],
+    'ai/minimax':  [6,0,2],
+    'ai/genetic':  [6,1,0],
+    'ai/nn':       [6,1,1],
+    'ai/rl':       [6,1,2]
   },
 
   // Initialize block at coordinate
@@ -84,21 +97,26 @@ Object.entries(KONOMI.MAP).forEach(([path, [x,y,z]]) => {
   });
 });
 
-// Render to page
-document.getElementById('block-info').textContent = `KONOMI.B[x][y][z] = Block
+// Render to page (browser only)
+if (typeof document !== 'undefined' && document.getElementById('block-info')) {
+  document.getElementById('block-info').textContent = `KONOMI.B[x][y][z] = Block
 Total Blocks: ${Object.keys(KONOMI.MAP).length}
-Dimensions: 5 x 6 x 2
+Dimensions: 7 x 6 x 3
 
 Usage:
   KONOMI.get(1,0,0)     → meta block
   KONOMI.path('types')  → types block
   KONOMI.ref('meta',0,1,0) → primitives
-  KONOMI.toPath(1,4,0)  → 'monads'`;
+  KONOMI.toPath(5,0,0)  → 'ml'`;
+}
 
-document.getElementById('coord-map').textContent =
-  Object.entries(KONOMI.MAP)
-    .map(([p,[x,y,z]]) => `B[${x}][${y}][${z}] = ${p}`)
-    .join('\n');
+if (typeof document !== 'undefined' && document.getElementById('coord-map')) {
+  document.getElementById('coord-map').textContent =
+    Object.entries(KONOMI.MAP)
+      .map(([p,[x,y,z]]) => `B[${x}][${y}][${z}] = ${p}`)
+      .join('\n');
+}
 
-// Export for global use
-window.KONOMI = KONOMI;
+// Export for Node and browser
+if (typeof module !== 'undefined') module.exports = KONOMI;
+if (typeof window !== 'undefined') window.KONOMI = KONOMI;

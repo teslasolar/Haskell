@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SPEC | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>HEADER UDT SPECIFICATION</h2>
+<pre><span class="cm">Every file starts with header block</span>
+<span class="cm">Logical time, not system clock</span>
+
+<span class="kw">UDT:Header</span> = {
+  <span class="fn">uid</span>: <span class="ty">UUID</span>,        <span class="cm"># unique file id</span>
+  <span class="fn">v</span>:   <span class="ty">Nat</span>,         <span class="cm"># version (monotonic)</span>
+  <span class="fn">t</span>:   <span class="ty">LTime</span>,       <span class="cm"># logical timestamp</span>
+  <span class="fn">p</span>:   <span class="ty">[UUID]</span>,      <span class="cm"># parent refs</span>
+  <span class="fn">h</span>:   <span class="ty">Hash</span>         <span class="cm"># content hash</span>
+}
+
+<span class="kw">UDT:LTime</span> = {
+  <span class="fn">seq</span>: <span class="ty">Nat</span>,         <span class="cm"># sequence number</span>
+  <span class="fn">src</span>: <span class="ty">NodeId</span>       <span class="cm"># origin node</span>
+}
+
+<span class="cm"># Distance = |t1.seq - t2.seq|</span>
+<span class="cm"># Incompatible if distance > threshold</span></pre>
+</section>
+<section>
+<h2>HEADER FORMAT</h2>
+<pre><span class="cm"># In JS/MD files:</span>
+/*! K:uid:v:seq:src:hash !*/
+
+<span class="cm"># In HTML:</span>
+&lt;!-- K:uid:v:seq:src:hash --&gt;
+
+<span class="cm"># Example:</span>
+/*! K:a1b2c3:3:42:node0:x7f8 !*/</pre>
+</section>
+</div>
+</body>
+</html>
