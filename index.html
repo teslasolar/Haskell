@@ -2,6 +2,8 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KONOMI:HASKELL</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00ff88">
 <link rel="stylesheet" href="css/style.css">
 <script src="config.js"></script>
 <script src="core/blocks/block.js" defer></script>
@@ -32,8 +34,10 @@ ghci> double x = x * 2
 <section>
 <h2>3D EXPERIENCE <a href="3d/" style="color:var(--purple)">[ENTER]</a></h2>
 <pre>B[8][0][0] <a href="3d/">3D World</a> - Navigate 1000³ grid
-B[8][0][1] <a href="3d/repl.html">3D REPL</a> - Visual AST & types
-B[8][0][2] <a href="3d/academy.html">3D Academy</a> - Portal challenges</pre>
+B[8][0][1] <a href="3d/repl.html">Visual REPL</a> - AST & type visualization
+B[8][0][2] <a href="3d/academy.html">3D Academy</a> - Portal challenges
+B[8][1][0] <a href="3d/typeflow.html">TypeFlow</a> - Animate type propagation
+B[8][1][1] <a href="3d/stepper.html">Stepper</a> - Step-by-step evaluation</pre>
 </section>
 
 <section>
@@ -109,5 +113,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       <a href="ai/">ai</a><a href="core/">core</a><a href="api/">api</a><a href="spec/">spec</a>`;
   }
 });
+
+// Register Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js')
+    .then(()=>console.log('SW registered'))
+    .catch(e=>console.log('SW failed',e));
+}
 </script>
 </body></html>

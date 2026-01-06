@@ -1,0 +1,482 @@
+<!-- K:tyflow:1:64:k0:t1f2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KONOMI:TypeFlow</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#toolbar{display:flex;gap:0.5rem;padding:0.5rem;background:var(--surface);border-bottom:1px solid var(--border)}
+#toolbar button{background:var(--border);color:var(--text);border:none;padding:0.5rem 1rem;cursor:pointer;border-radius:4px}
+#toolbar button:hover{background:var(--accent)}
+#toolbar button.active{background:var(--green);color:var(--bg)}
+#main{display:flex;flex:1;overflow:hidden}
+#editor{width:300px;display:flex;flex-direction:column;border-right:1px solid var(--border)}
+#code{flex:1;background:var(--bg);color:var(--text);border:none;padding:1rem;font-family:monospace;resize:none;outline:none}
+#canvas-wrap{flex:1;position:relative;overflow:hidden}
+#flow-canvas{width:100%;height:100%;background:var(--bg)}
+#legend{position:absolute;bottom:1rem;left:1rem;background:var(--surface);padding:1rem;border-radius:8px;font-size:0.8rem}
+.legend-item{display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0}
+.legend-color{width:20px;height:10px;border-radius:2px}
+#info{position:absolute;top:1rem;right:1rem;background:var(--surface);padding:1rem;border-radius:8px;max-width:250px;display:none}
+#info h4{color:var(--green);margin:0 0 0.5rem}
+#speed{width:100px}
+</style>
+</head><body>
+<div id="toolbar">
+<button onclick="location.href='../'">← Back</button>
+<button id="btn-play" onclick="FLOW.toggle()">▶ Play</button>
+<button onclick="FLOW.step()">Step</button>
+<button onclick="FLOW.reset()">Reset</button>
+<span style="color:var(--muted);margin-left:1rem">Speed:</span>
+<input type="range" id="speed" min="1" max="10" value="5" oninput="FLOW.setSpeed(this.value)">
+<span style="flex:1"></span>
+<select id="examples" onchange="FLOW.loadExample(this.value)">
+<option value="">-- Examples --</option>
+<option value="compose">Function Composition</option>
+<option value="map">Map Over List</option>
+<option value="fold">Fold Reduction</option>
+<option value="monad">Monad Bind</option>
+<option value="applicative">Applicative</option>
+</select>
+</div>
+
+<div id="main">
+<div id="editor">
+<textarea id="code" placeholder="Enter Haskell expression...">compose f g x = f (g x)
+
+-- Types:
+-- f :: b -> c
+-- g :: a -> b
+-- x :: a
+-- Result :: c</textarea>
+</div>
+<div id="canvas-wrap">
+<canvas id="flow-canvas"></canvas>
+<div id="legend">
+<div class="legend-item"><div class="legend-color" style="background:#00ff88"></div> Function</div>
+<div class="legend-item"><div class="legend-color" style="background:#4a9eff"></div> Input Type</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff4488"></div> Output Type</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffaa00"></div> Data Flow</div>
+</div>
+<div id="info">
+<h4 id="info-title">Node</h4>
+<p id="info-desc"></p>
+</div>
+</div>
+</div>
+
+<script>
+const FLOW = {
+  canvas: null,
+  ctx: null,
+  nodes: [],
+  edges: [],
+  particles: [],
+  playing: false,
+  speed: 5,
+  animFrame: null,
+  hovered: null,
+
+  examples: {
+    compose: `compose f g x = f (g x)
+
+-- f :: b -> c
+-- g :: a -> b
+-- x :: a
+-- compose :: (b -> c) -> (a -> b) -> a -> c`,
+
+    map: `map f [] = []
+map f (x:xs) = f x : map f xs
+
+-- f :: a -> b
+-- list :: [a]
+-- result :: [b]`,
+
+    fold: `foldr f z [] = z
+foldr f z (x:xs) = f x (foldr f z xs)
+
+-- f :: a -> b -> b
+-- z :: b (accumulator)
+-- list :: [a]
+-- result :: b`,
+
+    monad: `bind m f = case m of
+  Nothing -> Nothing
+  Just x  -> f x
+
+-- m :: Maybe a
+-- f :: a -> Maybe b
+-- result :: Maybe b
+-- (>>=) :: m a -> (a -> m b) -> m b`,
+
+    applicative: `apply mf mx = case mf of
+  Nothing -> Nothing
+  Just f  -> fmap f mx
+
+-- mf :: Maybe (a -> b)
+-- mx :: Maybe a
+-- result :: Maybe b
+-- (<*>) :: f (a -> b) -> f a -> f b`
+  },
+
+  init() {
+    this.canvas = document.getElementById('flow-canvas');
+    this.ctx = this.canvas.getContext('2d');
+
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+
+    this.canvas.addEventListener('mousemove', (e) => this.onHover(e));
+    this.canvas.addEventListener('click', (e) => this.onClick(e));
+
+    this.parse();
+    this.render();
+  },
+
+  resize() {
+    const wrap = document.getElementById('canvas-wrap');
+    this.canvas.width = wrap.clientWidth;
+    this.canvas.height = wrap.clientHeight;
+    this.render();
+  },
+
+  loadExample(name) {
+    if (this.examples[name]) {
+      document.getElementById('code').value = this.examples[name];
+      this.parse();
+    }
+  },
+
+  parse() {
+    const code = document.getElementById('code').value;
+    this.nodes = [];
+    this.edges = [];
+    this.particles = [];
+
+    const lines = code.split('\n');
+    let y = 80;
+    const centerX = this.canvas.width / 2;
+
+    // Parse function definitions and types
+    lines.forEach((line, i) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('--')) {
+        // Parse type comments
+        const typeMatch = trimmed.match(/^--\s*(\w+)\s*::\s*(.+)$/);
+        if (typeMatch) {
+          this.nodes.push({
+            type: 'type',
+            name: typeMatch[1],
+            sig: typeMatch[2],
+            x: centerX + 200,
+            y: y,
+            w: 150,
+            h: 40
+          });
+          y += 50;
+        }
+        return;
+      }
+
+      // Function definition
+      if (trimmed.includes(' = ')) {
+        const [lhs, rhs] = trimmed.split(' = ');
+        const parts = lhs.split(/\s+/);
+        const fnName = parts[0];
+        const params = parts.slice(1);
+
+        // Function node
+        this.nodes.push({
+          type: 'function',
+          name: fnName,
+          params,
+          body: rhs,
+          x: centerX - 100,
+          y: y,
+          w: 200,
+          h: 60
+        });
+
+        // Parameter nodes
+        params.forEach((param, pi) => {
+          const px = centerX - 250;
+          const py = y + pi * 35;
+          this.nodes.push({
+            type: 'param',
+            name: param,
+            x: px,
+            y: py,
+            w: 60,
+            h: 30
+          });
+
+          // Edge from param to function
+          this.edges.push({
+            from: this.nodes.length - 1,
+            to: this.nodes.length - params.length - 1 + pi,
+            type: 'input'
+          });
+        });
+
+        // Output node
+        this.nodes.push({
+          type: 'output',
+          name: 'result',
+          x: centerX + 150,
+          y: y + 15,
+          w: 80,
+          h: 30
+        });
+
+        // Edge from function to output
+        this.edges.push({
+          from: this.nodes.length - params.length - 2,
+          to: this.nodes.length - 1,
+          type: 'output'
+        });
+
+        y += 100;
+      }
+    });
+
+    this.render();
+  },
+
+  render() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Draw grid
+    ctx.strokeStyle = '#1a1a2e';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < this.canvas.width; x += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, this.canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < this.canvas.height; y += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(this.canvas.width, y);
+      ctx.stroke();
+    }
+
+    // Draw edges
+    this.edges.forEach(edge => {
+      const from = this.nodes[edge.from];
+      const to = this.nodes[edge.to];
+      if (!from || !to) return;
+
+      ctx.strokeStyle = edge.type === 'input' ? '#4a9eff' : '#ff4488';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const fx = from.x + from.w;
+      const fy = from.y + from.h / 2;
+      const tx = to.x;
+      const ty = to.y + to.h / 2;
+
+      // Bezier curve
+      const cx = (fx + tx) / 2;
+      ctx.moveTo(fx, fy);
+      ctx.bezierCurveTo(cx, fy, cx, ty, tx, ty);
+      ctx.stroke();
+
+      // Arrow
+      const angle = Math.atan2(ty - fy, tx - fx);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(tx - 10 * Math.cos(angle - 0.3), ty - 10 * Math.sin(angle - 0.3));
+      ctx.lineTo(tx - 10 * Math.cos(angle + 0.3), ty - 10 * Math.sin(angle + 0.3));
+      ctx.fill();
+    });
+
+    // Draw particles
+    this.particles.forEach(p => {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glow
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    // Draw nodes
+    this.nodes.forEach((node, i) => {
+      const isHovered = this.hovered === i;
+
+      // Background
+      ctx.fillStyle = isHovered ? '#2a2a4e' : '#1a1a2e';
+      ctx.strokeStyle = node.type === 'function' ? '#00ff88' :
+                        node.type === 'param' ? '#4a9eff' :
+                        node.type === 'output' ? '#ff4488' : '#8844ff';
+      ctx.lineWidth = isHovered ? 3 : 2;
+
+      this.roundRect(ctx, node.x, node.y, node.w, node.h, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      // Text
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = node.type === 'function' ? 'bold 14px monospace' : '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (node.type === 'function') {
+        ctx.fillText(node.name, node.x + node.w/2, node.y + 20);
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#888';
+        ctx.fillText(node.params.join(' '), node.x + node.w/2, node.y + 40);
+      } else if (node.type === 'type') {
+        ctx.fillText(node.name, node.x + node.w/2, node.y + 12);
+        ctx.font = '10px monospace';
+        ctx.fillText(node.sig, node.x + node.w/2, node.y + 28);
+      } else {
+        ctx.fillText(node.name, node.x + node.w/2, node.y + node.h/2);
+      }
+    });
+  },
+
+  roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  },
+
+  toggle() {
+    this.playing = !this.playing;
+    document.getElementById('btn-play').textContent = this.playing ? '⏸ Pause' : '▶ Play';
+    document.getElementById('btn-play').classList.toggle('active', this.playing);
+
+    if (this.playing) this.animate();
+  },
+
+  step() {
+    // Add a particle along an edge
+    if (this.edges.length === 0) return;
+
+    const edge = this.edges[Math.floor(Math.random() * this.edges.length)];
+    const from = this.nodes[edge.from];
+    const to = this.nodes[edge.to];
+    if (!from || !to) return;
+
+    this.particles.push({
+      edge,
+      t: 0,
+      x: from.x + from.w,
+      y: from.y + from.h / 2,
+      color: edge.type === 'input' ? '#4a9eff' : '#ff4488'
+    });
+
+    this.render();
+  },
+
+  animate() {
+    if (!this.playing) return;
+
+    // Add new particles periodically
+    if (Math.random() < 0.1 * this.speed / 5) {
+      this.step();
+    }
+
+    // Update particles
+    this.particles = this.particles.filter(p => {
+      p.t += 0.02 * this.speed;
+
+      if (p.t >= 1) return false;
+
+      const from = this.nodes[p.edge.from];
+      const to = this.nodes[p.edge.to];
+
+      const fx = from.x + from.w;
+      const fy = from.y + from.h / 2;
+      const tx = to.x;
+      const ty = to.y + to.h / 2;
+
+      // Bezier interpolation
+      const cx = (fx + tx) / 2;
+      const t = p.t;
+      const mt = 1 - t;
+
+      p.x = mt*mt*fx + 2*mt*t*cx + t*t*tx;
+      p.y = mt*mt*fy + 2*mt*t*((fy+ty)/2) + t*t*ty;
+
+      return true;
+    });
+
+    this.render();
+    this.animFrame = requestAnimationFrame(() => this.animate());
+  },
+
+  reset() {
+    this.playing = false;
+    this.particles = [];
+    document.getElementById('btn-play').textContent = '▶ Play';
+    document.getElementById('btn-play').classList.remove('active');
+    this.render();
+  },
+
+  setSpeed(val) {
+    this.speed = parseInt(val);
+  },
+
+  onHover(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    this.hovered = null;
+    for (let i = 0; i < this.nodes.length; i++) {
+      const n = this.nodes[i];
+      if (x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h) {
+        this.hovered = i;
+        break;
+      }
+    }
+
+    this.canvas.style.cursor = this.hovered !== null ? 'pointer' : 'default';
+
+    // Show info
+    const info = document.getElementById('info');
+    if (this.hovered !== null) {
+      const node = this.nodes[this.hovered];
+      document.getElementById('info-title').textContent = node.name;
+      document.getElementById('info-desc').textContent =
+        node.type === 'function' ? `Function: ${node.params.join(' → ')} → result` :
+        node.type === 'type' ? `Type: ${node.sig}` :
+        node.type === 'param' ? `Input parameter` :
+        `Output value`;
+      info.style.display = 'block';
+    } else {
+      info.style.display = 'none';
+    }
+
+    this.render();
+  },
+
+  onClick(e) {
+    if (this.hovered !== null) {
+      const node = this.nodes[this.hovered];
+      // Could add interaction here
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => FLOW.init());
+document.getElementById('code').addEventListener('input', () => FLOW.parse());
+</script>
+</body></html>

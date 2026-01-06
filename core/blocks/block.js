@@ -51,7 +51,9 @@ const KONOMI = {
     'academy':     [7,0,0],
     '3d':          [8,0,0],
     '3d/repl':     [8,0,1],
-    '3d/academy':  [8,0,2]
+    '3d/academy':  [8,0,2],
+    '3d/typeflow': [8,1,0],
+    '3d/stepper':  [8,1,1]
   },
 
   // Initialize block at coordinate

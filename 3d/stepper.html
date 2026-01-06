@@ -1,0 +1,393 @@
+<!-- K:step01:1:62:k0:s1t2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KONOMI:Stepper</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{display:flex;flex-direction:column;height:100vh}
+#toolbar{display:flex;gap:0.5rem;padding:0.5rem;background:var(--surface);border-bottom:1px solid var(--border);align-items:center}
+#toolbar button{background:var(--border);color:var(--text);border:none;padding:0.5rem 1rem;cursor:pointer;border-radius:4px;font-family:inherit}
+#toolbar button:hover{background:var(--accent)}
+#toolbar button:disabled{opacity:0.5;cursor:not-allowed}
+#main{display:flex;flex:1;overflow:hidden}
+#editor{width:350px;display:flex;flex-direction:column;border-right:1px solid var(--border)}
+#code{flex:1;background:var(--bg);color:var(--text);border:none;padding:1rem;font-family:monospace;font-size:14px;resize:none;outline:none}
+#stepper{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#steps{flex:1;overflow-y:auto;padding:1rem}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.5rem;transition:all 0.2s}
+.step.active{border-color:var(--green);background:#0a1f0a}
+.step.past{opacity:0.6}
+.step-num{color:var(--muted);font-size:0.8rem;margin-bottom:0.3rem}
+.step-expr{font-family:monospace;font-size:1rem;color:var(--text);margin-bottom:0.5rem;word-break:break-all}
+.step-rule{color:var(--accent);font-size:0.85rem}
+.step-arrow{color:var(--green);margin:0 0.5rem}
+.highlight{background:var(--yellow);color:var(--bg);padding:0 2px;border-radius:2px}
+#env{background:var(--bg);border-top:1px solid var(--border);padding:1rem;max-height:150px;overflow-y:auto}
+#env h4{color:var(--accent);margin:0 0 0.5rem;font-size:0.8rem}
+.env-item{font-family:monospace;font-size:0.85rem;color:var(--muted);margin:0.2rem 0}
+.env-item span{color:var(--green)}
+#examples{margin-left:auto}
+select{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:0.5rem;border-radius:4px}
+</style>
+</head><body>
+<div id="toolbar">
+<button onclick="location.href='../'">← Back</button>
+<button id="btn-step" onclick="STEPPER.step()">Step →</button>
+<button id="btn-run" onclick="STEPPER.runAll()">Run All</button>
+<button onclick="STEPPER.reset()">Reset</button>
+<span style="color:var(--muted);margin-left:1rem">Step: <span id="step-num">0</span></span>
+<select id="examples" onchange="STEPPER.loadExample(this.value)">
+<option value="">-- Load Example --</option>
+<option value="factorial">Factorial</option>
+<option value="fibonacci">Fibonacci</option>
+<option value="map">Map Function</option>
+<option value="fold">Fold Right</option>
+<option value="compose">Composition</option>
+</select>
+</div>
+
+<div id="main">
+<div id="editor">
+<textarea id="code" placeholder="Enter expression to evaluate...">factorial 5
+
+-- Definitions:
+-- factorial 0 = 1
+-- factorial n = n * factorial (n - 1)</textarea>
+</div>
+<div id="stepper">
+<div id="steps"></div>
+<div id="env">
+<h4>ENVIRONMENT</h4>
+<div id="env-list"></div>
+</div>
+</div>
+</div>
+
+<script>
+const STEPPER = {
+  steps: [],
+  currentStep: 0,
+  env: {},
+
+  examples: {
+    factorial: `factorial 5
+
+-- factorial 0 = 1
+-- factorial n = n * factorial (n - 1)`,
+
+    fibonacci: `fib 6
+
+-- fib 0 = 0
+-- fib 1 = 1
+-- fib n = fib (n-1) + fib (n-2)`,
+
+    map: `map double [1, 2, 3]
+
+-- double x = x * 2
+-- map f [] = []
+-- map f (x:xs) = f x : map f xs`,
+
+    fold: `foldr (+) 0 [1, 2, 3, 4]
+
+-- foldr f z [] = z
+-- foldr f z (x:xs) = f x (foldr f z xs)`,
+
+    compose: `(double . increment) 5
+
+-- double x = x * 2
+-- increment x = x + 1
+-- (f . g) x = f (g x)`
+  },
+
+  // Built-in reduction rules
+  rules: {
+    'factorial 0': { result: '1', rule: 'base case' },
+    'factorial': (n) => ({
+      result: `${n} * factorial (${n} - 1)`,
+      rule: 'recursive case'
+    }),
+    'fib 0': { result: '0', rule: 'base case' },
+    'fib 1': { result: '1', rule: 'base case' },
+    'fib': (n) => ({
+      result: `fib (${n}-1) + fib (${n}-2)`,
+      rule: 'recursive case'
+    }),
+    'double': (x) => ({ result: `${x} * 2`, rule: 'definition' }),
+    'increment': (x) => ({ result: `${x} + 1`, rule: 'definition' }),
+    '+': (a, b) => ({ result: String(Number(a) + Number(b)), rule: 'arithmetic' }),
+    '-': (a, b) => ({ result: String(Number(a) - Number(b)), rule: 'arithmetic' }),
+    '*': (a, b) => ({ result: String(Number(a) * Number(b)), rule: 'arithmetic' }),
+    'map_nil': { result: '[]', rule: 'map base case' },
+    'map': (f, x, xs) => ({
+      result: `${f} ${x} : map ${f} ${xs}`,
+      rule: 'map recursive'
+    }),
+    'foldr_nil': (f, z) => ({ result: z, rule: 'foldr base case' }),
+    'foldr': (f, z, x, xs) => ({
+      result: `${f} ${x} (foldr ${f} ${z} ${xs})`,
+      rule: 'foldr recursive'
+    }),
+    'compose': (f, g, x) => ({
+      result: `${f} (${g} ${x})`,
+      rule: 'function composition'
+    })
+  },
+
+  init() {
+    this.reset();
+  },
+
+  loadExample(name) {
+    if (this.examples[name]) {
+      document.getElementById('code').value = this.examples[name];
+      this.reset();
+    }
+  },
+
+  reset() {
+    const code = document.getElementById('code').value;
+    const expr = code.split('\n')[0].trim();
+
+    this.steps = [{ expr, rule: 'initial expression', highlight: null }];
+    this.currentStep = 0;
+    this.env = {};
+
+    // Parse definitions from comments
+    code.split('\n').forEach(line => {
+      const match = line.match(/^--\s*(\w+)\s+(.+?)\s*=\s*(.+)$/);
+      if (match) {
+        const [, name, args, body] = match;
+        this.env[name] = { args: args.trim(), body: body.trim() };
+      }
+    });
+
+    this.render();
+  },
+
+  step() {
+    if (this.currentStep >= this.steps.length - 1) {
+      // Try to reduce current expression
+      const last = this.steps[this.steps.length - 1];
+      const next = this.reduce(last.expr);
+
+      if (next && next.result !== last.expr) {
+        this.steps.push({
+          expr: next.result,
+          rule: next.rule,
+          highlight: next.highlight
+        });
+      } else {
+        // No more reductions possible
+        return false;
+      }
+    }
+
+    this.currentStep++;
+    this.render();
+    return true;
+  },
+
+  runAll() {
+    const run = () => {
+      if (this.step()) {
+        setTimeout(run, 300);
+      }
+    };
+    run();
+  },
+
+  reduce(expr) {
+    expr = expr.trim();
+
+    // Try arithmetic first: look for simple "a op b" patterns
+    const arithMatch = expr.match(/^(\d+)\s*([+\-*])\s*(\d+)(.*)$/);
+    if (arithMatch) {
+      const [, a, op, b, rest] = arithMatch;
+      const result = this.rules[op](a, b);
+      return {
+        result: result.result + rest,
+        rule: result.rule,
+        highlight: `${a} ${op} ${b}`
+      };
+    }
+
+    // Parenthesized arithmetic
+    const parenArith = expr.match(/\((\d+)\s*([+\-*])\s*(\d+)\)/);
+    if (parenArith) {
+      const [full, a, op, b] = parenArith;
+      const result = this.rules[op](a, b);
+      return {
+        result: expr.replace(full, result.result),
+        rule: result.rule,
+        highlight: full
+      };
+    }
+
+    // Function application
+    const funcMatch = expr.match(/^(\w+)\s+(\d+|[\[\]0-9,\s]+)(.*)$/);
+    if (funcMatch) {
+      const [, fn, arg, rest] = funcMatch;
+
+      // Check specific rules
+      if (fn === 'factorial') {
+        if (arg === '0') {
+          return { result: '1' + rest, rule: 'factorial base case', highlight: 'factorial 0' };
+        }
+        const n = parseInt(arg);
+        return {
+          result: `${n} * factorial ${n - 1}` + rest,
+          rule: 'factorial recursive',
+          highlight: `factorial ${arg}`
+        };
+      }
+
+      if (fn === 'fib') {
+        if (arg === '0') return { result: '0' + rest, rule: 'fib base case', highlight: 'fib 0' };
+        if (arg === '1') return { result: '1' + rest, rule: 'fib base case', highlight: 'fib 1' };
+        const n = parseInt(arg);
+        return {
+          result: `fib ${n-1} + fib ${n-2}` + rest,
+          rule: 'fib recursive',
+          highlight: `fib ${arg}`
+        };
+      }
+
+      if (fn === 'double') {
+        const n = parseInt(arg);
+        return { result: `${n * 2}` + rest, rule: 'double definition', highlight: `double ${arg}` };
+      }
+
+      if (fn === 'increment') {
+        const n = parseInt(arg);
+        return { result: `${n + 1}` + rest, rule: 'increment definition', highlight: `increment ${arg}` };
+      }
+    }
+
+    // Composition: (f . g) x
+    const compMatch = expr.match(/\((\w+)\s*\.\s*(\w+)\)\s+(\d+)/);
+    if (compMatch) {
+      const [full, f, g, x] = compMatch;
+      return {
+        result: expr.replace(full, `${f} (${g} ${x})`),
+        rule: 'function composition',
+        highlight: full
+      };
+    }
+
+    // Nested function call: f (g x)
+    const nestedMatch = expr.match(/(\w+)\s+\((\w+)\s+(\d+)\)/);
+    if (nestedMatch) {
+      const [full, f, g, x] = nestedMatch;
+      // First reduce inner
+      const inner = this.reduce(`${g} ${x}`);
+      if (inner) {
+        return {
+          result: expr.replace(full, `${f} (${inner.result})`),
+          rule: inner.rule,
+          highlight: `${g} ${x}`
+        };
+      }
+    }
+
+    // Parenthesized single value
+    const singleParen = expr.match(/\((\d+)\)/);
+    if (singleParen) {
+      return {
+        result: expr.replace(singleParen[0], singleParen[1]),
+        rule: 'remove parentheses',
+        highlight: singleParen[0]
+      };
+    }
+
+    // map on list
+    const mapMatch = expr.match(/map\s+(\w+)\s+\[([^\]]*)\]/);
+    if (mapMatch) {
+      const [full, fn, list] = mapMatch;
+      if (list.trim() === '') {
+        return { result: expr.replace(full, '[]'), rule: 'map base case', highlight: full };
+      }
+      const items = list.split(',').map(s => s.trim());
+      const mapped = items.map(x => {
+        const r = this.reduce(`${fn} ${x}`);
+        return r ? r.result : `${fn} ${x}`;
+      });
+      return {
+        result: expr.replace(full, `[${mapped.join(', ')}]`),
+        rule: 'map application',
+        highlight: full
+      };
+    }
+
+    // foldr
+    const foldrMatch = expr.match(/foldr\s+\(\+\)\s+(\d+)\s+\[([^\]]*)\]/);
+    if (foldrMatch) {
+      const [full, init, list] = foldrMatch;
+      if (list.trim() === '') {
+        return { result: expr.replace(full, init), rule: 'foldr base case', highlight: full };
+      }
+      const items = list.split(',').map(s => parseInt(s.trim()));
+      const sum = items.reduce((a, b) => a + b, parseInt(init));
+      return { result: expr.replace(full, String(sum)), rule: 'foldr evaluation', highlight: full };
+    }
+
+    return null;
+  },
+
+  render() {
+    const stepsDiv = document.getElementById('steps');
+    stepsDiv.innerHTML = '';
+
+    this.steps.forEach((step, i) => {
+      const div = document.createElement('div');
+      div.className = 'step' +
+        (i === this.currentStep ? ' active' : '') +
+        (i < this.currentStep ? ' past' : '');
+
+      let exprHtml = this.escapeHtml(step.expr);
+      if (step.highlight) {
+        exprHtml = exprHtml.replace(
+          this.escapeHtml(step.highlight),
+          `<span class="highlight">${this.escapeHtml(step.highlight)}</span>`
+        );
+      }
+
+      div.innerHTML = `
+        <div class="step-num">Step ${i}</div>
+        <div class="step-expr">${exprHtml}</div>
+        <div class="step-rule">${step.rule}</div>
+      `;
+
+      if (i > 0) {
+        const arrow = document.createElement('div');
+        arrow.innerHTML = '<span class="step-arrow">↓</span>';
+        arrow.style.textAlign = 'center';
+        arrow.style.color = 'var(--green)';
+        stepsDiv.appendChild(arrow);
+      }
+
+      stepsDiv.appendChild(div);
+    });
+
+    // Scroll to active
+    const active = stepsDiv.querySelector('.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Update step counter
+    document.getElementById('step-num').textContent = this.currentStep;
+
+    // Update environment display
+    const envList = document.getElementById('env-list');
+    envList.innerHTML = Object.entries(this.env)
+      .map(([name, def]) => `<div class="env-item"><span>${name}</span> ${def.args} = ${def.body}</div>`)
+      .join('') || '<div class="env-item">No definitions</div>';
+  },
+
+  escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => STEPPER.init());
+document.getElementById('code').addEventListener('input', () => STEPPER.reset());
+</script>
+</body></html>
