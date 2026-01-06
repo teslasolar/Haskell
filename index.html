@@ -8,8 +8,23 @@
 <script src="core/templates/atomic.js" defer></script>
 <script src="core/templates/auto.js" defer></script>
 <script src="core/compiler/haskell.js" defer></script>
+<script src="academy/gate.js"></script>
 </head><body>
-<div class="container">
+<div id="gate-screen" class="container" style="display:none">
+<header><h1>KONOMI:<span>ACADEMY</span></h1><p class="subtitle">Learn to Enter</p></header>
+<section>
+<h2>ACCESS REQUIRED</h2>
+<p>Complete the <strong>Basics</strong> level to unlock this site.</p>
+<pre>
+ghci> putStrLn "Hello, Haskell!"
+ghci> add x y = x + y
+ghci> double x = x * 2
+</pre>
+<a href="academy/" class="gate-btn">Enter Academy</a>
+</section>
+</div>
+
+<div id="main-content" class="container">
 <header><h1>KONOMI:<span>HASKELL</span></h1><p class="subtitle">v1.0</p></header>
 
 <nav id="auto-nav"></nav>
@@ -52,6 +67,8 @@ All tools via coordinate: RUN.call(x,y,z,fn)</pre>
 </div>
 
 <style>
+.gate-btn{display:inline-block;background:var(--green);color:var(--bg);padding:.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:1rem}
+.gate-btn:hover{opacity:.9}
 #auto-nav{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem;display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
 #auto-nav a{color:var(--accent);text-decoration:none;padding:.3rem .6rem;border-radius:4px;font-size:.8rem}
 #auto-nav a:hover{background:var(--border)}
@@ -65,12 +82,21 @@ All tools via coordinate: RUN.call(x,y,z,fn)</pre>
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
+  // Check academy gate
+  if(window.GATE && !GATE.hasBasics()){
+    document.getElementById('gate-screen').style.display='block';
+    document.getElementById('main-content').style.display='none';
+    return;
+  }
+  document.getElementById('main-content').style.display='block';
+
   // Auto-generate nav from KONOMI blocks
   if(window.KONOMI&&window.AUTO){
     AUTO.init();
   }else{
     // Fallback static nav
     document.getElementById('auto-nav').innerHTML=`
+      <a href="academy/" style="color:var(--yellow)">ACADEMY</a>
       <a href="meta/">meta</a><a href="types/">types</a><a href="hof/">hof</a>
       <a href="monads/">monads</a><a href="io/">io</a><a href="ml/">ml</a>
       <a href="ai/">ai</a><a href="core/">core</a><a href="api/">api</a><a href="spec/">spec</a>`;

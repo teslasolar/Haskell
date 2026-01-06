@@ -1,0 +1,237 @@
+<!-- K:acad00:1:87:k0:a1c2 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KONOMI Academy</title>
+<link rel="stylesheet" href="../css/style.css">
+<script src="levels.js"></script>
+<script src="progress.js"></script>
+</head><body>
+<div class="container">
+<header>
+<h1>KONOMI:<span>ACADEMY</span></h1>
+<p class="subtitle">Learn Haskell to Unlock the Site</p>
+</header>
+
+<section id="stats-bar">
+<div class="stat"><span id="xp">0</span> XP</div>
+<div class="stat">Level <span id="lvl">0</span></div>
+<div class="stat"><span id="pct">0</span>% Complete</div>
+<button onclick="ACADEMY.reset()" class="reset-btn">Reset</button>
+</section>
+
+<section id="levels"></section>
+
+<section id="challenge-area" class="hidden">
+<h2 id="ch-title">Challenge</h2>
+<p id="ch-prompt"></p>
+<p id="ch-hint" class="hint"></p>
+<div class="cli">
+<span class="prompt">ghci&gt;</span>
+<textarea id="cli-input" rows="3" placeholder="Enter Haskell code..."></textarea>
+</div>
+<div class="toolbar">
+<button onclick="ACADEMY.check()">Submit</button>
+<button onclick="ACADEMY.showHint()">Hint</button>
+<button onclick="ACADEMY.skip()">Skip</button>
+</div>
+<pre id="cli-output"></pre>
+</section>
+
+<section>
+<h2>PROGRESS MAP</h2>
+<pre id="progress-map"></pre>
+</section>
+
+<footer>K:academy|B[5][0][0]</footer>
+</div>
+
+<style>
+#stats-bar{display:flex;gap:1rem;align-items:center;background:var(--surface);padding:.8rem;border-radius:8px;flex-wrap:wrap}
+.stat{background:var(--bg);padding:.4rem .8rem;border-radius:4px;font-family:monospace}
+.stat span{color:var(--green);font-weight:bold}
+.reset-btn{margin-left:auto;background:var(--red);color:var(--bg);border:none;padding:.4rem .8rem;cursor:pointer;border-radius:4px;font-size:.75rem}
+#levels{display:flex;flex-direction:column;gap:.5rem}
+.level-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;cursor:pointer;transition:border-color .2s}
+.level-card:hover{border-color:var(--accent)}
+.level-card.locked{opacity:.5;cursor:not-allowed}
+.level-card.complete{border-color:var(--green)}
+.level-card h3{margin:0 0 .3rem;display:flex;justify-content:space-between}
+.level-card h3 span{font-size:.8rem;color:var(--green)}
+.level-card p{margin:0;font-size:.85rem;color:var(--muted)}
+.level-progress{height:4px;background:var(--bg);border-radius:2px;margin-top:.5rem;overflow:hidden}
+.level-progress-bar{height:100%;background:var(--green);transition:width .3s}
+#challenge-area{background:var(--surface);border:2px solid var(--accent);border-radius:8px;padding:1rem}
+#challenge-area.hidden{display:none}
+#ch-prompt{font-size:1.1rem;color:var(--text)}
+.hint{color:var(--yellow);font-size:.85rem;display:none}
+.hint.show{display:block}
+.cli{display:flex;align-items:flex-start;gap:.5rem;background:var(--bg);padding:.5rem;border-radius:4px;margin:.5rem 0}
+.cli .prompt{color:var(--purple);font-weight:bold;padding-top:.3rem}
+#cli-input{flex:1;background:transparent;border:none;color:var(--text);font-family:monospace;resize:vertical;outline:none}
+.toolbar{display:flex;gap:.5rem}
+.toolbar button{background:var(--border);color:var(--text);border:none;padding:.5rem 1rem;cursor:pointer;border-radius:4px}
+.toolbar button:first-child{background:var(--green);color:var(--bg)}
+#cli-output{min-height:40px;margin-top:.5rem}
+#progress-map{font-size:.75rem;line-height:1.6}
+.unlock{color:var(--green)}
+.locked{color:var(--muted)}
+</style>
+
+<script>
+const ACADEMY = {
+  current: null,
+  challengeIdx: 0,
+
+  init() {
+    this.renderLevels();
+    this.renderStats();
+    this.renderMap();
+  },
+
+  renderStats() {
+    const s = PROGRESS.stats();
+    document.getElementById('xp').textContent = s.xp;
+    document.getElementById('lvl').textContent = s.level;
+    document.getElementById('pct').textContent = s.percent;
+  },
+
+  renderLevels() {
+    const container = document.getElementById('levels');
+    container.innerHTML = '';
+
+    Object.entries(LEVELS).forEach(([id, level]) => {
+      const unlocked = PROGRESS.isLevelUnlocked(id);
+      const complete = PROGRESS.isLevelComplete(id);
+      const xp = PROGRESS.getLevelXP(id);
+      const pct = Math.round((xp / level.totalXP) * 100);
+
+      const card = document.createElement('div');
+      card.className = `level-card ${!unlocked ? 'locked' : ''} ${complete ? 'complete' : ''}`;
+      card.innerHTML = `
+        <h3>${level.name} <span>${complete ? 'COMPLETE' : unlocked ? `${xp}/${level.totalXP} XP` : 'LOCKED'}</span></h3>
+        <p>${level.desc}</p>
+        <div class="level-progress"><div class="level-progress-bar" style="width:${pct}%"></div></div>
+      `;
+
+      if (unlocked && !complete) {
+        card.onclick = () => this.startLevel(id);
+      }
+
+      container.appendChild(card);
+    });
+  },
+
+  renderMap() {
+    const p = PROGRESS.load();
+    let map = '';
+    Object.entries(LEVELS).forEach(([id, level]) => {
+      const done = PROGRESS.isLevelComplete(id);
+      const unlocked = PROGRESS.isLevelUnlocked(id);
+      const icon = done ? '[*]' : unlocked ? '[ ]' : '[x]';
+      const cls = done ? 'unlock' : unlocked ? '' : 'locked';
+      map += `<span class="${cls}">${icon} ${level.name.padEnd(15)} -> Unlocks: ${level.unlocks.join(', ')}</span>\n`;
+    });
+    map += `\n<span class="unlock">Features: ${p.unlocked.join(', ') || 'none'}</span>`;
+    document.getElementById('progress-map').innerHTML = map;
+  },
+
+  startLevel(levelId) {
+    this.current = levelId;
+    this.challengeIdx = 0;
+
+    // Find first incomplete challenge
+    const p = PROGRESS.load();
+    const done = p.completed[levelId] || [];
+    const level = LEVELS[levelId];
+
+    for (let i = 0; i < level.challenges.length; i++) {
+      if (!done.includes(level.challenges[i].id)) {
+        this.challengeIdx = i;
+        break;
+      }
+    }
+
+    this.showChallenge();
+  },
+
+  showChallenge() {
+    const level = LEVELS[this.current];
+    const ch = level.challenges[this.challengeIdx];
+
+    document.getElementById('challenge-area').classList.remove('hidden');
+    document.getElementById('ch-title').textContent = `${level.name} - Challenge ${this.challengeIdx + 1}/${level.challenges.length}`;
+    document.getElementById('ch-prompt').textContent = ch.prompt;
+    document.getElementById('ch-hint').textContent = `Hint: ${ch.hint}`;
+    document.getElementById('ch-hint').classList.remove('show');
+    document.getElementById('cli-input').value = '';
+    document.getElementById('cli-output').textContent = `[${ch.xp} XP] Type your answer...`;
+    document.getElementById('cli-input').focus();
+  },
+
+  showHint() {
+    document.getElementById('ch-hint').classList.add('show');
+  },
+
+  check() {
+    const level = LEVELS[this.current];
+    const ch = level.challenges[this.challengeIdx];
+    const input = document.getElementById('cli-input').value;
+    const output = document.getElementById('cli-output');
+
+    if (ch.check(input)) {
+      output.innerHTML = `<span style="color:var(--green)">CORRECT! +${ch.xp} XP</span>\n${input}`;
+      PROGRESS.complete(this.current, ch.id, ch.xp);
+
+      // Check if level complete
+      if (PROGRESS.isLevelComplete(this.current)) {
+        PROGRESS.unlockFeatures(this.current);
+        output.innerHTML += `\n\n<span style="color:var(--yellow)">LEVEL COMPLETE! Unlocked: ${LEVELS[this.current].unlocks.join(', ')}</span>`;
+        setTimeout(() => {
+          document.getElementById('challenge-area').classList.add('hidden');
+          this.renderLevels();
+          this.renderStats();
+          this.renderMap();
+        }, 2000);
+      } else {
+        // Next challenge
+        setTimeout(() => {
+          this.challengeIdx++;
+          this.showChallenge();
+        }, 1500);
+      }
+
+      this.renderStats();
+    } else {
+      output.innerHTML = `<span style="color:var(--red)">Try again...</span>\nExpected pattern not matched.`;
+    }
+  },
+
+  skip() {
+    const level = LEVELS[this.current];
+    if (this.challengeIdx < level.challenges.length - 1) {
+      this.challengeIdx++;
+      this.showChallenge();
+    }
+  },
+
+  reset() {
+    if (confirm('Reset all progress? This cannot be undone.')) {
+      PROGRESS.reset();
+      this.renderLevels();
+      this.renderStats();
+      this.renderMap();
+      document.getElementById('challenge-area').classList.add('hidden');
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => ACADEMY.init());
+
+// Handle Enter key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.ctrlKey) {
+    ACADEMY.check();
+  }
+});
+</script>
+</body></html>
