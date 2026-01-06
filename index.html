@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KONOMI:HASKELL v1.0</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="core/blocks/block.js" defer></script>
+<script src="core/templates/atomic.js" defer></script>
+<script src="core/compiler/haskell.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -12,9 +15,9 @@
 <h1>KONOMI:<span>HASKELL</span></h1>
 <p class="subtitle">Self-Defining Language Standard v1.0</p>
 </header>
+
 <nav>
 <a href="meta/">META</a>
-<a href="legend/">LEGEND</a>
 <a href="primitives/">PRIMITIVES</a>
 <a href="types/">TYPES</a>
 <a href="expressions/">EXPRESSIONS</a>
@@ -25,27 +28,65 @@
 <a href="io/">IO</a>
 <a href="modules/">MODULES</a>
 <a href="advanced/">ADVANCED</a>
-<a href="quickstart/">QUICKSTART</a>
-<a href="invariants/">INVARIANTS</a>
-<a href="crosswalk/">CROSSWALK</a>
 </nav>
+
 <section>
-<h2>LAYERS</h2>
+<h2>COMPILER / RUNNER</h2>
+<div id="compiler">
+<textarea id="src" rows="6" placeholder="-- Enter Haskell code">main = putStrLn "Hello, KONOMI!"</textarea>
+<div class="toolbar">
+<button onclick="HASKELL.run()">Run</button>
+<button onclick="HASKELL.parse()">Parse</button>
+<button onclick="HASKELL.clear()">Clear</button>
+<select id="mode" onchange="HASKELL.config.mode=this.value">
+<option value="local">Local</option>
+<option value="api">API</option>
+<option value="cli">CLI</option>
+<option value="mcp">MCP</option>
+</select>
+</div>
+<pre id="out">Ready</pre>
+</div>
+</section>
+
+<section>
+<h2>BLOCK ARRAY B[x][y][z]</h2>
 <pre>
-<span class="cm">L0</span>  <a href="meta/">META</a>         - Standard definition
-<span class="cm">L1</span>  <a href="primitives/">PRIMITIVES</a>   - Literals &amp; operators
-<span class="cm">L2</span>  <a href="types/">TYPES</a>        - Type system
-<span class="cm">L3</span>  <a href="expressions/">EXPRESSIONS</a>  - Functions &amp; patterns
-<span class="cm">L4</span>  <a href="lists/">LISTS</a>        - List operations
-<span class="cm">L5</span>  <a href="hof/">HOF</a>          - Higher-order functions
-<span class="cm">L6</span>  <a href="typeclasses/">TYPECLASSES</a>  - Type classes
-<span class="cm">L7</span>  <a href="monads/">MONADS</a>       - Monadic computation
-<span class="cm">L8</span>  <a href="io/">IO</a>           - Input/Output
-<span class="cm">L9</span>  <a href="modules/">MODULES</a>      - Module system
-<span class="cm">L10</span> <a href="advanced/">ADVANCED</a>     - GADTs, Kinds, Pragmas
+<span class="cm">LAYERS</span>                    <span class="cm">SYSTEM</span>
+B[1][0][0] <a href="meta/">meta</a>          B[3][0][0] <a href="core/">core</a>
+B[1][1][0] <a href="primitives/">primitives</a>    B[3][0][1] <a href="core/blocks/">blocks</a>
+B[1][1][1] <a href="types/">types</a>         B[3][1][0] <a href="core/templates/">templates</a>
+B[1][2][0] <a href="expressions/">expressions</a>   B[3][1][1] <a href="core/compiler/">compiler</a>
+B[1][2][1] <a href="lists/">lists</a>         B[4][0][0] <a href="api/">api</a>
+B[1][3][0] <a href="hof/">hof</a>           B[4][0][1] <a href="cli/">cli</a>
+B[1][3][1] <a href="typeclasses/">typeclasses</a>   B[4][1][0] <a href="mcp/">mcp</a>
+B[1][4][0] <a href="monads/">monads</a>
+B[1][4][1] <a href="io/">io</a>            <span class="cm">REF</span>
+B[1][5][0] <a href="modules/">modules</a>       B[2][0][0] <a href="quickstart/">quickstart</a>
+B[1][5][1] <a href="advanced/">advanced</a>      B[2][0][1] <a href="invariants/">invariants</a>
+                          B[2][1][0] <a href="crosswalk/">crosswalk</a>
 </pre>
 </section>
-<footer>KONOMI:HASKELL v1.0</footer>
+
+<section>
+<h2>SERVICES</h2>
+<pre>
+<span class="ty">API</span>  <a href="api/">/api</a>     POST /run, /eval, /compile, /type
+<span class="ty">CLI</span>  <a href="cli/">/cli</a>     konomi run|eval|compile|repl|serve
+<span class="ty">MCP</span>  <a href="mcp/">/mcp</a>     haskell_run, haskell_eval, konomi_block
+</pre>
+</section>
+
+<footer>KONOMI:HASKELL v1.0 | B[0][0][0]</footer>
 </div>
+
+<style>
+#compiler{display:flex;flex-direction:column;gap:.5rem}
+#src{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:.75rem;font-family:inherit;resize:vertical}
+.toolbar{display:flex;gap:.5rem;flex-wrap:wrap}
+.toolbar button,.toolbar select{background:var(--border);color:var(--text);border:none;padding:.4rem .8rem;cursor:pointer;border-radius:4px;font-family:inherit}
+.toolbar button:hover{background:var(--accent)}
+#out{min-height:60px;background:var(--bg);border:1px solid var(--border);padding:.75rem;margin:0;white-space:pre-wrap}
+</style>
 </body>
 </html>

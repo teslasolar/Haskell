@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CLI | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>CLI WRAPPER</h2>
+<pre><span class="cm">KONOMI:HASKELL Command Line Interface</span>
+
+<span class="fn">konomi</span> run &lt;file.hs&gt;
+  Execute Haskell source file
+
+<span class="fn">konomi</span> eval "&lt;expr&gt;"
+  Evaluate expression
+
+<span class="fn">konomi</span> compile &lt;file.hs&gt; [--target ast|core|stg]
+  Compile to target
+
+<span class="fn">konomi</span> type "&lt;expr&gt;"
+  Get type of expression
+
+<span class="fn">konomi</span> repl
+  Interactive REPL
+
+<span class="fn">konomi</span> serve [--port 3000]
+  Start API server
+
+<span class="fn">konomi</span> block &lt;x&gt; &lt;y&gt; &lt;z&gt;
+  Get block by coordinate
+
+<span class="fn">konomi</span> template &lt;name&gt; [--params '{}']
+  Render template</pre>
+</section>
+<section>
+<h2>INSTALL</h2>
+<pre><span class="cm"># npm</span>
+npm install -g konomi-haskell
+
+<span class="cm"># or run directly</span>
+npx konomi-haskell run main.hs</pre>
+</section>
+</div>
+</body>
+</html>

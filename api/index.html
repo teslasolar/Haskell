@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>API | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>API SPECIFICATION</h2>
+<pre><span class="cm">KONOMI:HASKELL Backend API v1.0</span>
+<span class="cm">Base: /api</span>
+
+<span class="fn">POST</span> <span class="str">/api/run</span>
+  Execute Haskell source
+  Body: { src: String, mode?: String }
+  Resp: { output: String, exitCode: Int }
+
+<span class="fn">POST</span> <span class="str">/api/compile</span>
+  Compile to target
+  Body: { src: String, target: 'ast'|'core'|'stg'|'cmm'|'asm' }
+  Resp: { result: Object|String }
+
+<span class="fn">POST</span> <span class="str">/api/eval</span>
+  Evaluate expression
+  Body: { expr: String }
+  Resp: { value: Any, type: String }
+
+<span class="fn">POST</span> <span class="str">/api/type</span>
+  Get type of expression
+  Body: { expr: String }
+  Resp: { type: String }
+
+<span class="fn">GET</span> <span class="str">/api/block/:x/:y/:z</span>
+  Get block by coordinate
+  Resp: { path, coord, content }
+
+<span class="fn">POST</span> <span class="str">/api/template</span>
+  Render template
+  Body: { name: String, params: Object }
+  Resp: { html: String }</pre>
+</section>
+<section>
+<h2>SERVICE MODES</h2>
+<pre><span class="ty">user</span>     Direct user requests
+<span class="ty">ai</span>       AI agent service calls
+<span class="ty">mcp</span>      Model Context Protocol
+<span class="ty">cli</span>      Command-line interface
+<span class="ty">batch</span>    Batch processing</pre>
+</section>
+</div>
+</body>
+</html>

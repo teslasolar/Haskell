@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>COMPILER | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../../css/style.css">
+<script src="./haskell.js" defer></script>
+</head>
+<body>
+<div class="container">
+<a class="back" href="../../">&larr; Back</a>
+<section>
+<h2>HASKELL COMPILER INTERFACE</h2>
+<pre>HASKELL.compile(src) → AST
+HASKELL.run(src) → Result
+HASKELL.eval(expr) → Value</pre>
+</section>
+<section>
+<h2>REPL</h2>
+<div id="repl">
+<textarea id="src" rows="8" placeholder="-- Haskell code here"></textarea>
+<div class="repl-btns">
+<button onclick="HASKELL.run()">▶ Run</button>
+<button onclick="HASKELL.parse()">⚙ Parse</button>
+<button onclick="HASKELL.clear()">✕ Clear</button>
+</div>
+<pre id="out"></pre>
+</div>
+</section>
+</div>
+<style>
+#src{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:1rem;font-family:inherit;resize:vertical}
+.repl-btns{display:flex;gap:.5rem;margin:1rem 0}
+.repl-btns button{background:var(--border);color:var(--text);border:none;padding:.5rem 1rem;cursor:pointer;border-radius:4px}
+.repl-btns button:hover{background:var(--accent)}
+#out{min-height:100px;background:var(--bg);border:1px solid var(--border);padding:1rem}
+</style>
+</body>
+</html>

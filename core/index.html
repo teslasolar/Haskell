@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CORE | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>CORE SYSTEM B[3][x][x]</h2>
+<pre>
+<span class="cm">KONOMI:HASKELL Core Architecture</span>
+
+B[3][0][0] <span class="ty">core</span>           This index
+B[3][0][1] <a href="blocks/">blocks</a>         3D coordinate system
+B[3][1][0] <a href="templates/">templates</a>      Atomic template engine
+B[3][1][1] <a href="compiler/">compiler</a>       Haskell compiler interface
+</pre>
+</section>
+<section>
+<h2>ARCHITECTURE</h2>
+<pre>
+┌─────────────────────────────────────┐
+│           KONOMI:HASKELL            │
+├─────────────────────────────────────┤
+│  <span class="ty">BLOCKS</span>     3D coordinate space    │
+│  B[x][y][z] → path → content       │
+├─────────────────────────────────────┤
+│  <span class="ty">TEMPLATES</span>  Atomic parameterized    │
+│  T.atom(p) → any element           │
+├─────────────────────────────────────┤
+│  <span class="ty">COMPILER</span>   Lex → Parse → Eval     │
+│  HASKELL.run(src) → output         │
+├─────────────────────────────────────┤
+│  <span class="ty">API</span>        REST endpoints         │
+│  <span class="ty">CLI</span>        Command line           │
+│  <span class="ty">MCP</span>        AI agent protocol      │
+└─────────────────────────────────────┘
+</pre>
+</section>
+</div>
+</body>
+</html>

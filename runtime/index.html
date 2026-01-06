@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RUNTIME | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>RUNTIME ENVIRONMENT</h2>
+<pre>
+<span class="cm">Supported Runtimes</span>
+
+<span class="ty">GHC</span>      Glasgow Haskell Compiler
+         Full compilation to native
+         ghc Main.hs -o main
+
+<span class="ty">GHCI</span>     GHC Interactive
+         REPL and scripting
+         ghci / runghc Main.hs
+
+<span class="ty">LOCAL</span>    Browser-based
+         Parse + limited eval
+         No external dependencies
+
+<span class="ty">API</span>      Remote execution
+         POST /api/run {src}
+         Full GHC backend
+
+<span class="ty">MCP</span>      AI agent runtime
+         haskell_run tool
+         Sandboxed execution
+</pre>
+</section>
+<section>
+<h2>EXECUTION MODES</h2>
+<pre>
+<span class="fn">HASKELL.config.mode</span> = 'local'|'api'|'cli'|'mcp'
+
+<span class="kw">local</span>  Browser parser + eval
+       No side effects
+       Immediate response
+
+<span class="kw">api</span>    HTTP to backend
+       Full GHC support
+       Network latency
+
+<span class="kw">cli</span>    Spawn ghc/ghci
+       Local machine
+       Full capabilities
+
+<span class="kw">mcp</span>    MCP protocol
+       AI agent context
+       Tool-based access
+</pre>
+</section>
+</div>
+</body>
+</html>
