@@ -1,0 +1,59 @@
+<!-- K:chain1:1:83:k0:c3h4 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHAIN|KONOMI</title>
+<link rel="stylesheet" href="../../css/style.css">
+<script src="../blocks/block.js" defer></script>
+<script src="./chain.js" defer></script>
+<script src="./cube.js" defer></script>
+<script src="./run.js" defer></script>
+</head><body>
+<div class="container">
+<a class="back" href="../../">&larr;</a>
+
+<section>
+<h2>BLOCKCHAIN B[3][2][0]</h2>
+<pre><span class="cm">CHAIN</span>  Hash-linked blocks
+<span class="cm">CUBE</span>   Self-referential 3D
+<span class="cm">RUN</span>    Tool orchestrator
+
+<span class="fn">CHAIN.add</span>([x,y,z],data)
+<span class="fn">CHAIN.get</span>(x,y,z)
+<span class="fn">CHAIN.verify</span>() → {valid,len}
+
+<span class="fn">CUBE.set</span>(x,y,z,data)
+<span class="fn">CUBE.get</span>(x,y,z).up/down/left/right
+<span class="fn">CUBE.walk</span>() → iterator
+
+<span class="fn">RUN.call</span>(x,y,z,fn,...args)
+<span class="fn">RUN.seq</span>([[coord,fn,args],...])
+<span class="fn">RUN.par</span>([[coord,fn,args],...])</pre>
+</section>
+
+<section>
+<h2>CHAIN STATE</h2>
+<pre id="chain-state">Init...</pre>
+</section>
+
+<section>
+<h2>CUBE SPACE</h2>
+<pre id="cube-state">Init...</pre>
+</section>
+
+<footer>K:chain|B[3][2][0]</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  if(window.KONOMI&&window.CHAIN&&window.CUBE){
+    CHAIN.init();
+    CUBE.init();
+    RUN.init();
+    document.getElementById('chain-state').textContent=
+      `Blocks: ${CHAIN.blocks.length}\nValid: ${CHAIN.verify().valid}\nGenesis: ${CHAIN.blocks[0]?.hash}`;
+    document.getElementById('cube-state').textContent=
+      `Cubes: ${CUBE.count()}\n`+[...CUBE.walk()].slice(0,8).map(c=>`B[${c.coord.join('][')}] ${c.data.path}`).join('\n')+'...';
+  }
+});
+</script>
+</body></html>

@@ -1,4 +1,4 @@
-/*! K:block01:2:40:k0:b1c2 !*/
+/*! K:block01:3:85:k0:b2c3 !*/
 /**
  * KONOMI 3D Block Array System
  * Directories as coordinate-addressable blocks
@@ -12,6 +12,7 @@ const KONOMI = {
   MAP: {
     'root':        [0,0,0],
     'spec':        [0,0,1],
+    'app':         [0,0,2],
     'meta':        [1,0,0],
     'legend':      [1,0,1],
     'primitives':  [1,1,0],
@@ -31,6 +32,7 @@ const KONOMI = {
     'core/blocks': [3,0,1],
     'core/templates': [3,1,0],
     'core/compiler':  [3,1,1],
+    'core/chain':  [3,2,0],
     'api':         [4,0,0],
     'cli':         [4,0,1],
     'mcp':         [4,1,0],
