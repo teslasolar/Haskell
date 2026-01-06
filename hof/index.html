@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HOF | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 5: HIGHER-ORDER</h2>
+<pre><span class="cm">UDT:HOF</span>
+<span class="fn">map</span> <span class="op">::</span> (a<span class="op">-></span>b) <span class="op">-></span> [a] <span class="op">-></span> [b]
+<span class="fn">map</span> (<span class="op">+</span><span class="num">1</span>) [<span class="num">1,2,3</span>] <span class="op">=</span> [<span class="num">2,3,4</span>]
+
+<span class="fn">filter</span> <span class="op">::</span> (a<span class="op">-></span><span class="ty">Bool</span>) <span class="op">-></span> [a] <span class="op">-></span> [a]
+<span class="fn">filter</span> (<span class="op">></span><span class="num">2</span>) [<span class="num">1,2,3,4</span>] <span class="op">=</span> [<span class="num">3,4</span>]
+
+<span class="fn">foldr</span> <span class="op">::</span> (a<span class="op">-></span>b<span class="op">-></span>b) <span class="op">-></span> b <span class="op">-></span> [a] <span class="op">-></span> b
+<span class="fn">foldr</span> (<span class="op">+</span>) <span class="num">0</span> [<span class="num">1,2,3</span>] <span class="op">=</span> <span class="num">6</span>
+
+<span class="cm">UDT:Sections</span>
+(<span class="op">+</span><span class="num">1</span>) <span class="op">=</span> <span class="op">\</span>x<span class="op">-></span>x<span class="op">+</span><span class="num">1</span>
+(<span class="op">*</span><span class="num">2</span>) <span class="op">=</span> <span class="op">\</span>x<span class="op">-></span>x<span class="op">*</span><span class="num">2</span>
+
+<span class="cm">UDT:Composition</span>
+(<span class="op">.</span>) <span class="op">::</span> (b<span class="op">-></span>c) <span class="op">-></span> (a<span class="op">-></span>b) <span class="op">-></span> a <span class="op">-></span> c
+(f <span class="op">.</span> g) x <span class="op">=</span> f (g x)</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MODULES | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 9: MODULES</h2>
+<pre><span class="cm">UDT:ModuleDef</span>
+<span class="kw">module</span> <span class="ty">MyModule</span> (
+  exportedFn,
+  <span class="ty">DataType</span>(..)
+) <span class="kw">where</span>
+
+<span class="cm">UDT:Imports</span>
+<span class="kw">import</span> <span class="ty">Data.List</span>
+<span class="kw">import</span> <span class="ty">Data.List</span> (sort,nub)
+<span class="kw">import</span> <span class="ty">Data.List</span> <span class="kw">hiding</span> (sort)
+<span class="kw">import qualified</span> <span class="ty">Data.Map</span> <span class="kw">as</span> M
+
+<span class="cm">UDT:Common</span>
+<span class="ty">Data.List</span>     sort,nub,group
+<span class="ty">Data.Maybe</span>    fromMaybe,isJust
+<span class="ty">Data.Map</span>      Map,lookup,insert
+<span class="ty">Control.Monad</span> when,unless,forM</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

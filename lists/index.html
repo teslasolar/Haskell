@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LISTS | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 4: LISTS</h2>
+<pre><span class="cm">UDT:ListLiteral</span>
+[]              <span class="cm">#empty</span>
+[<span class="num">1,2,3</span>]         <span class="cm">#literal</span>
+[<span class="num">1</span>..<span class="num">10</span>]         <span class="cm">#range</span>
+[<span class="num">1,3</span>..<span class="num">10</span>]       <span class="cm">#step</span>
+[<span class="num">1</span>..]           <span class="cm">#infinite</span>
+
+<span class="cm">UDT:Comprehension</span>
+[x<span class="op">*</span><span class="num">2</span> <span class="op">|</span> x<span class="op"><-</span>[<span class="num">1</span>..<span class="num">5</span>]]
+[x <span class="op">|</span> x<span class="op"><-</span>[<span class="num">1</span>..<span class="num">10</span>], <span class="fn">even</span> x]
+
+<span class="cm">UDT:ListOps</span>
+<span class="fn">head</span> [<span class="num">1,2,3</span>] <span class="op">=</span> <span class="num">1</span>
+<span class="fn">tail</span> [<span class="num">1,2,3</span>] <span class="op">=</span> [<span class="num">2,3</span>]
+<span class="fn">take</span> <span class="num">2</span> [<span class="num">1,2,3</span>] <span class="op">=</span> [<span class="num">1,2</span>]
+<span class="fn">drop</span> <span class="num">2</span> [<span class="num">1,2,3</span>] <span class="op">=</span> [<span class="num">3</span>]
+<span class="fn">zip</span> [<span class="num">1,2</span>] <span class="str">"ab"</span> <span class="op">=</span> [(<span class="num">1</span>,<span class="str">'a'</span>),(<span class="num">2</span>,<span class="str">'b'</span>)]</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

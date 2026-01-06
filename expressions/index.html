@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EXPRESSIONS | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 3: EXPRESSIONS</h2>
+<pre><span class="cm">UDT:FnDef</span>
+<span class="fn">add</span> <span class="op">::</span> <span class="ty">Int -> Int -> Int</span>
+<span class="fn">add</span> x y <span class="op">=</span> x <span class="op">+</span> y
+
+<span class="cm">UDT:PatternMatch</span>
+<span class="fn">head'</span> (x<span class="op">:</span>_) <span class="op">=</span> x
+<span class="fn">tail'</span> (_<span class="op">:</span>xs) <span class="op">=</span> xs
+<span class="fn">isEmpty</span> [] <span class="op">=</span> <span class="kw">True</span>
+<span class="fn">isEmpty</span> _  <span class="op">=</span> <span class="kw">False</span>
+
+<span class="cm">UDT:Guards</span>
+<span class="fn">abs'</span> n <span class="op">|</span> n<span class="op"><</span><span class="num">0</span> <span class="op">=</span> <span class="op">-</span>n
+       <span class="op">|</span> <span class="kw">otherwise</span> <span class="op">=</span> n
+
+<span class="cm">UDT:Where/Let</span>
+<span class="fn">fn</span> x <span class="op">=</span> y<span class="op">*</span><span class="num">2</span> <span class="kw">where</span> y<span class="op">=</span>x<span class="op">+</span><span class="num">1</span>
+<span class="fn">fn</span> x <span class="op">=</span> <span class="kw">let</span> y<span class="op">=</span>x<span class="op">+</span><span class="num">1</span> <span class="kw">in</span> y<span class="op">*</span><span class="num">2</span></pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

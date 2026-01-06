@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PRIMITIVES | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 1: PRIMITIVES</h2>
+<pre><span class="cm">UDT:Literal</span>
+<span class="ty">Int</span>:<span class="num">42</span>|<span class="num">-7</span>           <span class="cm">#machine int</span>
+<span class="ty">Integer</span>:<span class="num">999999</span>     <span class="cm">#arbitrary</span>
+<span class="ty">Float</span>:<span class="num">3.14</span>         <span class="cm">#single</span>
+<span class="ty">Double</span>:<span class="num">3.14159</span>    <span class="cm">#double</span>
+<span class="ty">Char</span>:<span class="str">'a'</span>|<span class="str">'\n'</span>     <span class="cm">#unicode</span>
+<span class="ty">Bool</span>:<span class="kw">True</span>|<span class="kw">False</span>   <span class="cm">#boolean</span>
+<span class="ty">String</span>:<span class="str">"hello"</span>    <span class="cm">#[Char]</span>
+
+<span class="cm">UDT:Operator</span>
+<span class="op">::</span>  has type    <span class="op">-></span>  fn arrow
+<span class="op"><-</span>  bind        <span class="op">=></span>  constraint
+<span class="op">$</span>   apply       <span class="op">.</span>   compose
+<span class="op">:</span>   cons        <span class="op">++</span>  concat
+<span class="op">!!</span>  index       <span class="op">_</span>   wildcard
+<span class="op">|</span>   guard       <span class="op">\</span>   lambda</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

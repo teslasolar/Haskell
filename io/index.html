@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IO | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 8: IO</h2>
+<pre><span class="cm">UDT:BasicIO</span>
+<span class="fn">putStr</span> <span class="op">::</span> <span class="ty">String -> IO ()</span>
+<span class="fn">putStrLn</span> <span class="op">::</span> <span class="ty">String -> IO ()</span>
+<span class="fn">print</span> <span class="op">::</span> <span class="ty">Show</span> a <span class="op">=></span> a <span class="op">-></span> <span class="ty">IO ()</span>
+<span class="fn">getLine</span> <span class="op">::</span> <span class="ty">IO String</span>
+<span class="fn">readFile</span> <span class="op">::</span> <span class="ty">FilePath -> IO String</span>
+<span class="fn">writeFile</span> <span class="op">::</span> <span class="ty">FilePath -> String -> IO ()</span>
+
+<span class="cm">UDT:DoNotation</span>
+<span class="fn">main</span> <span class="op">=</span> <span class="kw">do</span>
+  <span class="fn">putStrLn</span> <span class="str">"Name?"</span>
+  name <span class="op"><-</span> <span class="fn">getLine</span>
+  <span class="fn">putStrLn</span> <span class="op">$</span> <span class="str">"Hello "</span><span class="op">++</span>name</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

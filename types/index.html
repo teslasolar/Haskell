@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TYPES | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 2: TYPE SYSTEM</h2>
+<pre><span class="cm">UDT:BaseTypes</span>
+<span class="ty">Int</span>|<span class="ty">Integer</span>|<span class="ty">Float</span>|<span class="ty">Double</span>|<span class="ty">Char</span>|<span class="ty">Bool</span>|<span class="ty">()</span>
+
+<span class="cm">UDT:Compound</span>
+<span class="ty">[a]</span>           list
+<span class="ty">(a,b)</span>         tuple
+<span class="ty">Maybe a</span>       <span class="kw">Nothing</span>|<span class="kw">Just</span> a
+<span class="ty">Either a b</span>    <span class="kw">Left</span> a|<span class="kw">Right</span> b
+<span class="ty">IO a</span>          effect container
+<span class="ty">a -> b</span>        function
+
+<span class="cm">UDT:TypeDecl</span>
+<span class="kw">type</span> <span class="ty">Name</span> <span class="op">=</span> <span class="ty">String</span>
+<span class="kw">newtype</span> <span class="ty">Age</span> <span class="op">=</span> <span class="ty">Age Int</span>
+<span class="kw">data</span> <span class="ty">Bool</span> <span class="op">=</span> <span class="kw">False</span>|<span class="kw">True</span>
+<span class="kw">data</span> <span class="ty">Maybe</span> a <span class="op">=</span> <span class="kw">Nothing</span>|<span class="kw">Just</span> a</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

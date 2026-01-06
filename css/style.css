@@ -1,0 +1,23 @@
+:root {
+  --bg:#0d1117;--surface:#161b22;--border:#30363d;
+  --text:#c9d1d9;--dim:#8b949e;--accent:#58a6ff;
+  --purple:#bc8cff;--green:#7ee787;--orange:#ffa657;--cyan:#79c0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'SF Mono','Fira Code',monospace;background:var(--bg);color:var(--text);line-height:1.6;font-size:14px}
+.container{max-width:900px;margin:0 auto;padding:2rem}
+header{text-align:center;padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+h1{color:var(--accent);font-size:2rem}
+h1 span{color:var(--purple)}
+.subtitle{color:var(--dim);font-size:1rem}
+nav{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
+nav a{color:var(--accent);text-decoration:none;padding:.3rem .6rem;border-radius:4px;font-size:.8rem}
+nav a:hover{background:var(--border)}
+section{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;overflow:hidden}
+section h2{background:linear-gradient(90deg,var(--border),transparent);padding:.8rem 1rem;font-size:1rem;color:var(--green);border-bottom:1px solid var(--border)}
+pre{padding:1rem;overflow-x:auto;font-size:.85rem}
+.kw{color:var(--purple)}.ty{color:var(--cyan)}.fn{color:var(--green)}.op{color:var(--orange)}.cm{color:var(--dim)}.str{color:var(--green)}.num{color:var(--orange)}
+footer{text-align:center;padding:1.5rem;color:var(--dim);border-top:1px solid var(--border);margin-top:1.5rem}
+.back{display:inline-block;margin-bottom:1rem;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+@media(max-width:600px){.container{padding:1rem}h1{font-size:1.5rem}nav{flex-direction:column}}

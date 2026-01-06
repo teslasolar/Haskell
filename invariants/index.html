@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>INVARIANTS | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>HASKELL INVARIANTS</h2>
+<pre><span class="fn">R1</span>: Every expression has a type
+<span class="fn">R2</span>: Functions are curried
+    a<span class="op">-></span>b<span class="op">-></span>c <span class="op">=</span> a<span class="op">-></span>(b<span class="op">-></span>c)
+<span class="fn">R3</span>: Pure functions
+    same input <span class="op">=</span> same output
+<span class="fn">R4</span>: Lazy evaluation
+    nothing evaluated until needed
+<span class="fn">R5</span>: IO is explicit in types
+<span class="fn">R6</span>: Pattern match exhaustive (warn)
+<span class="fn">R7</span>: Type inference
+    signatures optional
+<span class="fn">R8</span>: No mutation
+    bindings, not boxes</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

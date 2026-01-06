@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MONADS | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 7: MONADS</h2>
+<pre><span class="cm">STATE:MonadLaws</span>
+LEFT_ID:  return a <span class="op">>>=</span> f <span class="op">≡</span> f a
+RIGHT_ID: m <span class="op">>>=</span> return <span class="op">≡</span> m
+ASSOC:    (m<span class="op">>>=</span>f)<span class="op">>>=</span>g <span class="op">≡</span> m<span class="op">>>=</span>(<span class="op">\</span>x<span class="op">-></span>f x<span class="op">>>=</span>g)
+
+<span class="cm">UDT:Maybe</span>
+<span class="kw">data</span> <span class="ty">Maybe</span> a <span class="op">=</span> <span class="kw">Nothing</span>|<span class="kw">Just</span> a
+
+<span class="fn">safeDivide</span> _ <span class="num">0</span> <span class="op">=</span> <span class="kw">Nothing</span>
+<span class="fn">safeDivide</span> x y <span class="op">=</span> <span class="kw">Just</span> (x<span class="fn">`div`</span>y)
+
+<span class="cm">UDT:Either</span>
+<span class="kw">data</span> <span class="ty">Either</span> a b <span class="op">=</span> <span class="kw">Left</span> a|<span class="kw">Right</span> b
+
+<span class="cm">UDT:List</span>
+<span class="kw">instance</span> <span class="ty">Monad</span> [] <span class="kw">where</span>
+  return x <span class="op">=</span> [x]
+  xs <span class="op">>>=</span> f <span class="op">=</span> <span class="fn">concatMap</span> f xs</pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>

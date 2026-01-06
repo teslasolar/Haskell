@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ADVANCED | KONOMI:HASKELL</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="container">
+<a class="back" href="../">&larr; Back</a>
+<section>
+<h2>LAYER 10: ADVANCED</h2>
+<pre><span class="cm">UDT:Strictness</span>
+<span class="fn">seq</span> <span class="op">::</span> a <span class="op">-></span> b <span class="op">-></span> b
+<span class="kw">data</span> <span class="ty">Foo</span> <span class="op">=</span> <span class="ty">Foo</span> <span class="op">!</span><span class="ty">Int</span> <span class="op">!</span><span class="ty">Int</span>
+
+<span class="cm">UDT:Pragmas</span>
+{-# <span class="kw">LANGUAGE</span> OverloadedStrings #-}
+{-# <span class="kw">LANGUAGE</span> GADTs #-}
+{-# <span class="kw">LANGUAGE</span> TypeFamilies #-}
+
+<span class="cm">UDT:KindSystem</span>
+<span class="ty">*</span>           concrete (<span class="ty">Int</span>)
+<span class="ty">* -> *</span>      constructor (<span class="ty">Maybe</span>)
+<span class="ty">* -> * -> *</span> two-arg (<span class="ty">Either</span>)
+
+<span class="cm">UDT:GADTs</span>
+<span class="kw">data</span> <span class="ty">Expr</span> a <span class="kw">where</span>
+  <span class="ty">LitInt</span> <span class="op">::</span> <span class="ty">Int -> Expr Int</span>
+  <span class="ty">Add</span> <span class="op">::</span> <span class="ty">Expr Int -> Expr Int -> Expr Int</span></pre>
+</section>
+<footer>KONOMI:HASKELL v1.0</footer>
+</div>
+</body>
+</html>
