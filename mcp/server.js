@@ -260,4 +260,8 @@ const MCP = {
   }
 };
 
-MCP.start();
+// Export for testing, start if run directly
+if (require.main === module) {
+  MCP.start();
+}
+module.exports = MCP;
