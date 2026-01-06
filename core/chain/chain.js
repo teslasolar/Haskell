@@ -62,11 +62,11 @@ const CHAIN={
   init(){
     if(typeof KONOMI==='undefined')return;
     // Genesis
-    const g=CHAIN.create([0,0,0],{path:'root',url:'/'});
+    const g=CHAIN.create([0,0,0],{path:'root',url:KONOMI.url('root')});
     CHAIN.blocks.push(g);
     // Add all mapped blocks
     Object.entries(KONOMI.MAP).forEach(([path,[x,y,z]])=>{
-      if(path!=='root')CHAIN.add([x,y,z],{path,url:`/${path}/`});
+      if(path!=='root')CHAIN.add([x,y,z],{path,url:KONOMI.url(path)});
     });
     return CHAIN;
   },

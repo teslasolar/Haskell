@@ -1,15 +1,15 @@
-/*! K:auto01:1:61:k0:a2b3 !*/
+/*! K:auto01:2:104:k0:a3b4 !*/
 /**
  * KONOMI Auto-Loader
  * Discovers and loads sub-indexes
  */
 const AUTO={
-// Scan for sub-indexes
+// Scan for sub-indexes (uses KONOMI.url for base path)
 scan:()=>{
   const subs=[];
   if(typeof window!=='undefined'&&window.KONOMI){
     Object.entries(KONOMI.MAP).forEach(([p,[x,y,z]])=>{
-      if(p!=='root')subs.push({path:p,coord:[x,y,z],url:`/${p}/`});
+      if(p!=='root')subs.push({path:p,coord:[x,y,z],url:KONOMI.url(p)});
     });
   }
   return subs;
@@ -18,7 +18,8 @@ scan:()=>{
 // Load sub-index content via fetch
 load:async(path)=>{
   try{
-    const r=await fetch(`/${path}/index.html`);
+    const url=window.KONOMI?KONOMI.url(path):`${path}/index.html`;
+    const r=await fetch(url+'index.html');
     return r.ok?await r.text():null;
   }catch(e){return null;}
 },
@@ -27,7 +28,7 @@ load:async(path)=>{
 register:(path,coord)=>{
   if(window.KONOMI){
     KONOMI.MAP[path]=coord;
-    KONOMI.init(...coord,{path,coord,url:`/${path}/`,type:'block'});
+    KONOMI.init(...coord,{path,coord,url:KONOMI.url(path),type:'block'});
   }
 },
 

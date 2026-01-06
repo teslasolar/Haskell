@@ -89,12 +89,19 @@ const KONOMI = {
   }
 };
 
+// Get base path (CONFIG if loaded, else auto-detect)
+KONOMI.base = (typeof CONFIG !== 'undefined') ? CONFIG.base :
+  (typeof location !== 'undefined' && location.pathname.includes('/Haskell/')) ? '/Haskell/' : '/';
+
+// Build URL with base
+KONOMI.url = (path) => KONOMI.base + (path === 'root' ? '' : path + '/');
+
 // Initialize blocks from map
 Object.entries(KONOMI.MAP).forEach(([path, [x,y,z]]) => {
   KONOMI.init(x, y, z, {
     path,
     coord: [x,y,z],
-    url: path === 'root' ? '/' : `/${path}/`,
+    url: KONOMI.url(path),
     type: path.includes('/') ? 'subblock' : 'block'
   });
 });

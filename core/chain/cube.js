@@ -75,10 +75,10 @@ const CUBE={
     Object.entries(KONOMI.MAP).forEach(([path,[x,y,z]])=>{
       CUBE.set(x,y,z,{
         path,
-        url:path==='root'?'/':`/${path}/`,
-        load:async()=>fetch(`/${path==='root'?'':path+'/'}index.html`).then(r=>r.text()),
+        url:KONOMI.url(path),
+        load:async()=>fetch(KONOMI.url(path)+'index.html').then(r=>r.text()),
         run:async(fn)=>{
-          const mod=await import(`/${path}/index.js`).catch(()=>null);
+          const mod=await import(KONOMI.url(path)+'index.js').catch(()=>null);
           return mod?.[fn]?.();
         }
       });
