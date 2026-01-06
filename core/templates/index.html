@@ -1,28 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>TEMPLATES | KONOMI:HASKELL</title>
+<!-- K:tmpl01:2:63:k0:t3m4 -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TEMPLATES|KONOMI</title>
 <link rel="stylesheet" href="../../css/style.css">
 <script src="./atomic.js" defer></script>
-</head>
-<body>
+<script src="./auto.js" defer></script>
+</head><body>
 <div class="container">
-<a class="back" href="../../">&larr; Back</a>
+<a class="back" href="../../">&larr;Back</a>
+
 <section>
-<h2>ATOMIC TEMPLATE SYSTEM</h2>
-<pre>T(type, params) → rendered element
-One atomic, infinite forms</pre>
+<h2>TEMPLATE SYSTEM B[3][1][0]</h2>
+<pre><span class="cm">Three template layers:</span>
+
+<span class="ty">T.atom(p)</span>    Atomic elements
+<span class="ty">IDX.tpl(p)</span>   Index page template
+<span class="ty">IDX.mini(p)</span>  Minified single-line
+<span class="ty">AUTO.nav()</span>   Auto-generated nav</pre>
 </section>
+
+<section>
+<h2>MINIFIED INDEX TEMPLATE</h2>
+<pre><span class="cm">IDX.tpl({uid,title,content,coord,css,back})</span>
+
+<span class="fn">Params:</span>
+  uid     Header ID
+  title   Page title / H2
+  content PRE content
+  coord   [x,y,z] block
+  css     Stylesheet path
+  back    Back link href
+
+<span class="fn">Output:</span> ~200 byte HTML</pre>
+</section>
+
+<section>
+<h2>AUTO-LOADER</h2>
+<pre><span class="cm">AUTO.scan()</span>    Get all blocks
+<span class="cm">AUTO.nav(f)</span>    Generate nav HTML
+<span class="cm">AUTO.init()</span>    Init on DOMReady
+
+<span class="fn">Elements:</span>
+  #auto-nav  Nav container
+  #auto-map  Block map display</pre>
+</section>
+
 <section>
 <h2>LIVE DEMO</h2>
 <div id="demo"></div>
 </section>
-<section>
-<h2>TEMPLATE SPEC</h2>
-<pre id="spec"></pre>
-</section>
-</div>
-</body>
-</html>
+
+<footer>K:tmpl01|B[3][1][0]</footer>
+</div></body></html>
