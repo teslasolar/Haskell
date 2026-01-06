@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KONOMI:HASKELL - Self-Defining Language Standard v1.0</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --purple: #bc8cff;
+            --green: #7ee787;
+            --orange: #ffa657;
+            --red: #ff7b72;
+            --cyan: #79c0ff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        h1 { color: var(--accent); font-size: 2.5rem; margin-bottom: 0.5rem; }
+        h1 span { color: var(--purple); }
+        .subtitle { color: var(--text-dim); font-size: 1.1rem; }
+        nav {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        nav a {
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+            font-size: 0.85rem;
+        }
+        nav a:hover { background: var(--border); }
+        section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        section h2 {
+            background: linear-gradient(90deg, var(--border), transparent);
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            color: var(--green);
+            border-bottom: 1px solid var(--border);
+        }
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        .kw { color: var(--purple); }
+        .ty { color: var(--cyan); }
+        .fn { color: var(--green); }
+        .op { color: var(--orange); }
+        .cm { color: var(--text-dim); }
+        .str { color: var(--green); }
+        .num { color: var(--orange); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            nav { flex-direction: column; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KONOMI:<span>HASKELL</span></h1>
+            <p class="subtitle">Self-Defining Language Standard v1.0</p>
+        </header>
+
+        <nav>
+            <a href="#meta">META</a>
+            <a href="#legend">LEGEND</a>
+            <a href="#primitives">PRIMITIVES</a>
+            <a href="#types">TYPES</a>
+            <a href="#expressions">EXPRESSIONS</a>
+            <a href="#lists">LISTS</a>
+            <a href="#hof">HIGHER-ORDER</a>
+            <a href="#typeclasses">TYPECLASSES</a>
+            <a href="#monads">MONADS</a>
+            <a href="#io">IO</a>
+            <a href="#modules">MODULES</a>
+            <a href="#advanced">ADVANCED</a>
+        </nav>
+
+        <section id="meta">
+            <h2>LAYER 0: META</h2>
+            <pre><span class="kw">STD</span>={
+  <span class="fn">id</span>:<span class="str">"HASKELL"</span>,
+  <span class="fn">scope</span>:<span class="str">"Pure functional programming"</span>,
+  <span class="fn">paradigm</span>:[<span class="ty">Functional</span>,<span class="ty">Lazy</span>,<span class="ty">Typed</span>,<span class="ty">Pure</span>],
+  <span class="fn">runtime</span>:<span class="ty">GHC</span>|<span class="ty">GHCI</span>|<span class="ty">Hugs</span>,
+  <span class="fn">extension</span>:<span class="str">.hs</span>|<span class="str">.lhs</span>
+}</pre>
+        </section>
+
+        <section id="legend">
+            <h2>LEGEND</h2>
+            <pre><span class="op">λ</span>=Lambda  <span class="op">∴</span>=Pure  <span class="op">⊕</span>=Monad  <span class="op">→</span>=Arrow  <span class="op">::</span>=Type
+<span class="op">∀</span>=Forall  <span class="op">⊥</span>=Bottom  <span class="op">∘</span>=Compose  <span class="op">$</span>=Apply  <span class="op">>>=</span>Bind</pre>
+        </section>
+
+        <div class="grid">
+            <section id="primitives">
+                <h2>LAYER 1: PRIMITIVES</h2>
+                <pre><span class="cm">UDT:Literal</span>
+<span class="ty">Int</span>:<span class="num">42</span>|<span class="num">-7</span>             <span class="cm">#machine int</span>
+<span class="ty">Integer</span>:<span class="num">99999999999</span>   <span class="cm">#arbitrary precision</span>
+<span class="ty">Float</span>:<span class="num">3.14</span>            <span class="cm">#single</span>
+<span class="ty">Double</span>:<span class="num">3.14159265</span>    <span class="cm">#double</span>
+<span class="ty">Char</span>:<span class="str">'a'</span>|<span class="str">'\n'</span>        <span class="cm">#unicode</span>
+<span class="ty">Bool</span>:<span class="kw">True</span>|<span class="kw">False</span>      <span class="cm">#boolean</span>
+<span class="ty">String</span>:<span class="str">"hello"</span>       <span class="cm">#[Char]</span>
+
+<span class="cm">UDT:Operator</span>
+<span class="op">::</span>    has type         x <span class="op">::</span> <span class="ty">Int</span>
+<span class="op">-></span>    fn arrow          <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Int</span>
+<span class="op"><-</span>    bind              x <span class="op"><-</span> getLine
+<span class="op">=></span>    constraint        <span class="ty">Eq</span> a <span class="op">=></span> a
+<span class="op">$</span>     apply             f <span class="op">$</span> g x
+<span class="op">.</span>     compose           f <span class="op">.</span> g
+<span class="op">:</span>     cons              <span class="num">1</span> <span class="op">:</span> [<span class="num">2,3</span>]
+<span class="op">++</span>    concat            [<span class="num">1</span>] <span class="op">++</span> [<span class="num">2</span>]
+<span class="op">!!</span>    index             xs <span class="op">!!</span> <span class="num">0</span>
+<span class="op">_</span>     wildcard          <span class="op">_</span> <span class="op">-></span> default
+<span class="op">|</span>     guard             <span class="op">|</span> x <span class="op">></span> <span class="num">0</span> <span class="op">=</span> ...
+<span class="op">\</span>     lambda            <span class="op">\</span>x <span class="op">-></span> x <span class="op">+</span> <span class="num">1</span></pre>
+            </section>
+
+            <section id="types">
+                <h2>LAYER 2: TYPE SYSTEM</h2>
+                <pre><span class="cm">UDT:BaseTypes</span>
+<span class="ty">Int</span>|<span class="ty">Integer</span>|<span class="ty">Float</span>|<span class="ty">Double</span>|<span class="ty">Char</span>|<span class="ty">Bool</span>|<span class="ty">()</span>
+
+<span class="cm">UDT:Compound</span>
+<span class="ty">[a]</span>           list (homogeneous)
+<span class="ty">(a,b)</span>         tuple (heterogeneous)
+<span class="ty">Maybe a</span>       <span class="kw">Nothing</span> | <span class="kw">Just</span> a
+<span class="ty">Either a b</span>    <span class="kw">Left</span> a | <span class="kw">Right</span> b
+<span class="ty">IO a</span>          side effect container
+<span class="ty">a -> b</span>        function
+
+<span class="cm">UDT:TypeDecl</span>
+<span class="kw">type</span> <span class="ty">Name</span> <span class="op">=</span> <span class="ty">String</span>        <span class="cm">#alias</span>
+<span class="kw">newtype</span> <span class="ty">Age</span> <span class="op">=</span> <span class="ty">Age</span> <span class="ty">Int</span>    <span class="cm">#wrapper</span>
+<span class="kw">data</span> <span class="ty">Bool</span> <span class="op">=</span> <span class="kw">False</span> | <span class="kw">True</span> <span class="cm">#sum</span>
+<span class="kw">data</span> <span class="ty">Maybe</span> a <span class="op">=</span> <span class="kw">Nothing</span> | <span class="kw">Just</span> a
+<span class="kw">data</span> <span class="ty">Person</span> <span class="op">=</span> <span class="ty">Person</span> {
+  <span class="fn">name</span> <span class="op">::</span> <span class="ty">String</span>,
+  <span class="fn">age</span> <span class="op">::</span> <span class="ty">Int</span>
+} <span class="kw">deriving</span> (<span class="ty">Show</span>,<span class="ty">Eq</span>)</pre>
+            </section>
+
+            <section id="expressions">
+                <h2>LAYER 3: EXPRESSIONS</h2>
+                <pre><span class="cm">UDT:FnDef</span>
+<span class="fn">add</span> <span class="op">::</span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Int</span>
+<span class="fn">add</span> x y <span class="op">=</span> x <span class="op">+</span> y
+<span class="fn">add</span> <span class="op">=</span> <span class="op">\</span>x y <span class="op">-></span> x <span class="op">+</span> y
+
+<span class="cm">UDT:PatternMatch</span>
+<span class="fn">head'</span> (x<span class="op">:</span>_) <span class="op">=</span> x
+<span class="fn">tail'</span> (_<span class="op">:</span>xs) <span class="op">=</span> xs
+<span class="fn">isEmpty</span> [] <span class="op">=</span> <span class="kw">True</span>
+<span class="fn">isEmpty</span> _  <span class="op">=</span> <span class="kw">False</span>
+
+<span class="cm">UDT:Guards</span>
+<span class="fn">abs'</span> n <span class="op">|</span> n <span class="op"><</span> <span class="num">0</span>     <span class="op">=</span> <span class="op">-</span>n
+       <span class="op">|</span> <span class="kw">otherwise</span> <span class="op">=</span> n
+
+<span class="cm">UDT:Where/Let</span>
+<span class="fn">fn</span> x <span class="op">=</span> y <span class="op">*</span> <span class="num">2</span> <span class="kw">where</span> y <span class="op">=</span> x <span class="op">+</span> <span class="num">1</span>
+<span class="fn">fn</span> x <span class="op">=</span> <span class="kw">let</span> y <span class="op">=</span> x <span class="op">+</span> <span class="num">1</span> <span class="kw">in</span> y <span class="op">*</span> <span class="num">2</span>
+
+<span class="cm">UDT:Case/If</span>
+<span class="kw">case</span> x <span class="kw">of</span>
+  <span class="num">0</span> <span class="op">-></span> <span class="str">"zero"</span>
+  _ <span class="op">-></span> <span class="str">"other"</span>
+<span class="kw">if</span> cond <span class="kw">then</span> a <span class="kw">else</span> b</pre>
+            </section>
+
+            <section id="lists">
+                <h2>LAYER 4: LISTS</h2>
+                <pre><span class="cm">UDT:ListLiteral</span>
+[]                <span class="cm">#empty</span>
+[<span class="num">1,2,3</span>]           <span class="cm">#literal</span>
+[<span class="num">1</span>..<span class="num">10</span>]           <span class="cm">#range</span>
+[<span class="num">1,3</span>..<span class="num">10</span>]         <span class="cm">#step [1,3,5,7,9]</span>
+[<span class="num">1</span>..]             <span class="cm">#infinite</span>
+
+<span class="cm">UDT:ListComprehension</span>
+[x<span class="op">*</span><span class="num">2</span> <span class="op">|</span> x <span class="op"><-</span> [<span class="num">1</span>..<span class="num">5</span>]]
+[x<span class="op">*</span><span class="num">2</span> <span class="op">|</span> x <span class="op"><-</span> [<span class="num">1</span>..<span class="num">5</span>], x <span class="op">></span> <span class="num">2</span>]
+[(x,y) <span class="op">|</span> x <span class="op"><-</span> [<span class="num">1,2</span>], y <span class="op"><-</span> <span class="str">"ab"</span>]
+
+<span class="cm">UDT:ListOps</span>
+<span class="fn">head</span> [<span class="num">1,2,3</span>]     <span class="op">=</span> <span class="num">1</span>
+<span class="fn">tail</span> [<span class="num">1,2,3</span>]     <span class="op">=</span> [<span class="num">2,3</span>]
+<span class="fn">take</span> <span class="num">2</span> [<span class="num">1,2,3</span>]   <span class="op">=</span> [<span class="num">1,2</span>]
+<span class="fn">drop</span> <span class="num">2</span> [<span class="num">1,2,3</span>]   <span class="op">=</span> [<span class="num">3</span>]
+<span class="fn">zip</span> [<span class="num">1,2</span>] <span class="str">"ab"</span>   <span class="op">=</span> [(<span class="num">1</span>,<span class="str">'a'</span>),(<span class="num">2</span>,<span class="str">'b'</span>)]</pre>
+            </section>
+
+            <section id="hof">
+                <h2>LAYER 5: HIGHER-ORDER</h2>
+                <pre><span class="cm">UDT:HOF</span>
+<span class="fn">map</span> <span class="op">::</span> (a <span class="op">-></span> b) <span class="op">-></span> [a] <span class="op">-></span> [b]
+<span class="fn">map</span> (<span class="op">+</span><span class="num">1</span>) [<span class="num">1,2,3</span>]     <span class="op">=</span> [<span class="num">2,3,4</span>]
+
+<span class="fn">filter</span> <span class="op">::</span> (a <span class="op">-></span> <span class="ty">Bool</span>) <span class="op">-></span> [a] <span class="op">-></span> [a]
+<span class="fn">filter</span> (<span class="op">></span><span class="num">2</span>) [<span class="num">1,2,3,4</span>] <span class="op">=</span> [<span class="num">3,4</span>]
+
+<span class="fn">foldr</span> <span class="op">::</span> (a <span class="op">-></span> b <span class="op">-></span> b) <span class="op">-></span> b <span class="op">-></span> [a] <span class="op">-></span> b
+<span class="fn">foldr</span> (<span class="op">+</span>) <span class="num">0</span> [<span class="num">1,2,3</span>]   <span class="op">=</span> <span class="num">6</span>
+
+<span class="cm">UDT:Sections</span>
+(<span class="op">+</span><span class="num">1</span>)    <span class="op">=</span> <span class="op">\</span>x <span class="op">-></span> x <span class="op">+</span> <span class="num">1</span>
+(<span class="op">*</span><span class="num">2</span>)    <span class="op">=</span> <span class="op">\</span>x <span class="op">-></span> x <span class="op">*</span> <span class="num">2</span>
+(<span class="op">></span><span class="num">0</span>)    <span class="op">=</span> <span class="op">\</span>x <span class="op">-></span> x <span class="op">></span> <span class="num">0</span>
+
+<span class="cm">UDT:Composition</span>
+(<span class="op">.</span>) <span class="op">::</span> (b <span class="op">-></span> c) <span class="op">-></span> (a <span class="op">-></span> b) <span class="op">-></span> a <span class="op">-></span> c
+(f <span class="op">.</span> g) x <span class="op">=</span> f (g x)
+<span class="fn">process</span> <span class="op">=</span> <span class="fn">map</span> (<span class="op">*</span><span class="num">2</span>) <span class="op">.</span> <span class="fn">filter</span> (<span class="op">></span><span class="num">0</span>)</pre>
+            </section>
+
+            <section id="typeclasses">
+                <h2>LAYER 6: TYPECLASSES</h2>
+                <pre><span class="cm">UDT:CoreClasses</span>
+<span class="ty">Eq</span>          (<span class="op">==</span>),(<span class="op">/=</span>)
+<span class="ty">Ord</span>         (<span class="op"><</span>),(<span class="op">></span>),compare,min,max
+<span class="ty">Show</span>        show
+<span class="ty">Read</span>        read
+<span class="ty">Num</span>         (<span class="op">+</span>),(<span class="op">-</span>),(<span class="op">*</span>),abs,signum
+<span class="ty">Functor</span>     fmap,(<span class="op"><$></span>)
+<span class="ty">Applicative</span> pure,(<span class="op"><*></span>)
+<span class="ty">Monad</span>       return,(<span class="op">>>=</span>),(<span class="op">>></span>)
+<span class="ty">Foldable</span>    foldr,foldl,fold
+<span class="ty">Monoid</span>      mempty,(<span class="op"><></span>),mconcat
+
+<span class="cm">UDT:ClassDef</span>
+<span class="kw">class</span> <span class="ty">Eq</span> a <span class="kw">where</span>
+  (<span class="op">==</span>) <span class="op">::</span> a <span class="op">-></span> a <span class="op">-></span> <span class="ty">Bool</span>
+  (<span class="op">/=</span>) <span class="op">::</span> a <span class="op">-></span> a <span class="op">-></span> <span class="ty">Bool</span>
+  x <span class="op">/=</span> y <span class="op">=</span> not (x <span class="op">==</span> y)
+
+<span class="cm">UDT:Instance</span>
+<span class="kw">instance</span> <span class="ty">Eq</span> <span class="ty">Bool</span> <span class="kw">where</span>
+  <span class="kw">True</span> <span class="op">==</span> <span class="kw">True</span> <span class="op">=</span> <span class="kw">True</span>
+  <span class="kw">False</span> <span class="op">==</span> <span class="kw">False</span> <span class="op">=</span> <span class="kw">True</span>
+  _ <span class="op">==</span> _ <span class="op">=</span> <span class="kw">False</span></pre>
+            </section>
+
+            <section id="monads">
+                <h2>LAYER 7: MONADS</h2>
+                <pre><span class="cm">STATE:MonadLaws</span>
+LEFT_ID:   return a <span class="op">>>=</span> f  <span class="op">≡</span>  f a
+RIGHT_ID:  m <span class="op">>>=</span> return    <span class="op">≡</span>  m
+ASSOC:     (m <span class="op">>>=</span> f) <span class="op">>>=</span> g <span class="op">≡</span>  m <span class="op">>>=</span> (<span class="op">\</span>x <span class="op">-></span> f x <span class="op">>>=</span> g)
+
+<span class="cm">UDT:Maybe</span>
+<span class="kw">data</span> <span class="ty">Maybe</span> a <span class="op">=</span> <span class="kw">Nothing</span> <span class="op">|</span> <span class="kw">Just</span> a
+
+<span class="fn">safeDivide</span> <span class="op">::</span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Maybe Int</span>
+<span class="fn">safeDivide</span> _ <span class="num">0</span> <span class="op">=</span> <span class="kw">Nothing</span>
+<span class="fn">safeDivide</span> x y <span class="op">=</span> <span class="kw">Just</span> (x <span class="fn">`div`</span> y)
+
+<span class="cm">UDT:Either</span>
+<span class="kw">data</span> <span class="ty">Either</span> a b <span class="op">=</span> <span class="kw">Left</span> a <span class="op">|</span> <span class="kw">Right</span> b
+
+<span class="cm">UDT:List Monad</span>
+<span class="kw">instance</span> <span class="ty">Monad</span> [] <span class="kw">where</span>
+  return x <span class="op">=</span> [x]
+  xs <span class="op">>>=</span> f <span class="op">=</span> <span class="fn">concatMap</span> f xs</pre>
+            </section>
+
+            <section id="io">
+                <h2>LAYER 8: IO</h2>
+                <pre><span class="cm">UDT:BasicIO</span>
+<span class="fn">putStr</span> <span class="op">::</span> <span class="ty">String</span> <span class="op">-></span> <span class="ty">IO</span> ()
+<span class="fn">putStrLn</span> <span class="op">::</span> <span class="ty">String</span> <span class="op">-></span> <span class="ty">IO</span> ()
+<span class="fn">print</span> <span class="op">::</span> <span class="ty">Show</span> a <span class="op">=></span> a <span class="op">-></span> <span class="ty">IO</span> ()
+<span class="fn">getLine</span> <span class="op">::</span> <span class="ty">IO String</span>
+<span class="fn">readFile</span> <span class="op">::</span> <span class="ty">FilePath</span> <span class="op">-></span> <span class="ty">IO String</span>
+<span class="fn">writeFile</span> <span class="op">::</span> <span class="ty">FilePath</span> <span class="op">-></span> <span class="ty">String</span> <span class="op">-></span> <span class="ty">IO</span> ()
+
+<span class="cm">UDT:DoNotation</span>
+<span class="fn">main</span> <span class="op">=</span> <span class="kw">do</span>
+  <span class="fn">putStrLn</span> <span class="str">"Name?"</span>
+  name <span class="op"><-</span> <span class="fn">getLine</span>
+  <span class="fn">putStrLn</span> <span class="op">$</span> <span class="str">"Hello "</span> <span class="op">++</span> name
+
+<span class="cm">-- Desugared:</span>
+<span class="fn">main</span> <span class="op">=</span> <span class="fn">putStrLn</span> <span class="str">"Name?"</span> <span class="op">>></span>
+       <span class="fn">getLine</span> <span class="op">>>=</span> <span class="op">\</span>name <span class="op">-></span>
+       <span class="fn">putStrLn</span> <span class="op">$</span> <span class="str">"Hello "</span> <span class="op">++</span> name</pre>
+            </section>
+
+            <section id="modules">
+                <h2>LAYER 9: MODULES</h2>
+                <pre><span class="cm">UDT:ModuleDef</span>
+<span class="kw">module</span> <span class="ty">MyModule</span> (
+  exportedFn,
+  <span class="ty">DataType</span>(..)
+) <span class="kw">where</span>
+
+<span class="cm">UDT:Imports</span>
+<span class="kw">import</span> <span class="ty">Data.List</span>
+<span class="kw">import</span> <span class="ty">Data.List</span> (sort, nub)
+<span class="kw">import</span> <span class="ty">Data.List</span> <span class="kw">hiding</span> (sort)
+<span class="kw">import qualified</span> <span class="ty">Data.Map</span> <span class="kw">as</span> M
+<span class="kw">import</span> <span class="ty">Data.Map</span> (<span class="ty">Map</span>)
+
+<span class="cm">UDT:CommonModules</span>
+<span class="ty">Data.List</span>     sort,nub,group,partition
+<span class="ty">Data.Maybe</span>    fromMaybe,catMaybes,isJust
+<span class="ty">Data.Map</span>      Map,lookup,insert,fromList
+<span class="ty">Control.Monad</span> when,unless,forM,guard</pre>
+            </section>
+
+            <section id="advanced">
+                <h2>LAYER 10: ADVANCED</h2>
+                <pre><span class="cm">UDT:Strictness</span>
+<span class="fn">seq</span> <span class="op">::</span> a <span class="op">-></span> b <span class="op">-></span> b
+<span class="kw">data</span> <span class="ty">Foo</span> <span class="op">=</span> <span class="ty">Foo</span> <span class="op">!</span><span class="ty">Int</span> <span class="op">!</span><span class="ty">Int</span>  <span class="cm">#strict fields</span>
+
+<span class="cm">UDT:Pragmas</span>
+{-# <span class="kw">LANGUAGE</span> OverloadedStrings #-}
+{-# <span class="kw">LANGUAGE</span> GADTs #-}
+{-# <span class="kw">LANGUAGE</span> TypeFamilies #-}
+{-# <span class="kw">LANGUAGE</span> RankNTypes #-}
+
+<span class="cm">UDT:KindSystem</span>
+<span class="ty">*</span>           concrete type (<span class="ty">Int</span>, <span class="ty">Bool</span>)
+<span class="ty">* -> *</span>      type constructor (<span class="ty">Maybe</span>, [])
+<span class="ty">* -> * -> *</span> two-arg (<span class="ty">Either</span>, (,))
+
+<span class="cm">UDT:GADTs</span>
+<span class="kw">data</span> <span class="ty">Expr</span> a <span class="kw">where</span>
+  <span class="ty">LitInt</span>  <span class="op">::</span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Expr Int</span>
+  <span class="ty">LitBool</span> <span class="op">::</span> <span class="ty">Bool</span> <span class="op">-></span> <span class="ty">Expr Bool</span>
+  <span class="ty">Add</span>     <span class="op">::</span> <span class="ty">Expr Int</span> <span class="op">-></span> <span class="ty">Expr Int</span> <span class="op">-></span> <span class="ty">Expr Int</span></pre>
+            </section>
+        </div>
+
+        <section id="quickstart">
+            <h2>QUICKSTART</h2>
+            <pre><span class="cm">-- 1. Types</span>
+<span class="fn">x</span> <span class="op">::</span> <span class="ty">Int</span>
+<span class="fn">x</span> <span class="op">=</span> <span class="num">42</span>
+
+<span class="cm">-- 2. Functions</span>
+<span class="fn">double</span> <span class="op">::</span> <span class="ty">Int</span> <span class="op">-></span> <span class="ty">Int</span>
+<span class="fn">double</span> n <span class="op">=</span> n <span class="op">*</span> <span class="num">2</span>
+
+<span class="cm">-- 3. Lists</span>
+<span class="fn">nums</span> <span class="op">=</span> [<span class="num">1</span>..<span class="num">10</span>]
+<span class="fn">evens</span> <span class="op">=</span> <span class="fn">filter</span> even nums
+
+<span class="cm">-- 4. Maybe</span>
+<span class="fn">safeDivide</span> x <span class="num">0</span> <span class="op">=</span> <span class="kw">Nothing</span>
+<span class="fn">safeDivide</span> x y <span class="op">=</span> <span class="kw">Just</span> (x <span class="fn">`div`</span> y)
+
+<span class="cm">-- 5. IO</span>
+<span class="fn">main</span> <span class="op">=</span> <span class="kw">do</span>
+  <span class="fn">putStrLn</span> <span class="str">"Hello"</span>
+  name <span class="op"><-</span> <span class="fn">getLine</span>
+  <span class="fn">putStrLn</span> <span class="op">$</span> <span class="str">"Hi "</span> <span class="op">++</span> name
+
+<span class="cm">-- 6. Composition</span>
+<span class="fn">process</span> <span class="op">=</span> <span class="fn">map</span> (<span class="op">*</span><span class="num">2</span>) <span class="op">.</span> <span class="fn">filter</span> (<span class="op">></span><span class="num">0</span>) <span class="op">.</span> <span class="fn">take</span> <span class="num">10</span></pre>
+        </section>
+
+        <section id="invariants">
+            <h2>HASKELL INVARIANTS</h2>
+            <pre><span class="fn">R1</span>: Every expression has a type
+<span class="fn">R2</span>: Functions are curried (a <span class="op">-></span> b <span class="op">-></span> c <span class="op">=</span> a <span class="op">-></span> (b <span class="op">-></span> c))
+<span class="fn">R3</span>: Pure functions: same input <span class="op">=</span> same output, always
+<span class="fn">R4</span>: Lazy: nothing evaluated until needed
+<span class="fn">R5</span>: IO is explicit in types
+<span class="fn">R6</span>: Pattern match must be exhaustive (warn)
+<span class="fn">R7</span>: Type inference: signatures optional but recommended
+<span class="fn">R8</span>: No mutation: "variables" are bindings, not boxes</pre>
+        </section>
+
+        <section id="crosswalk">
+            <h2>CROSSWALK: HASKELL - KONOMI</h2>
+            <pre><span class="ty">Haskell.Type</span>        <span class="op">=</span> <span class="ty">Konomi.UDT</span>
+<span class="ty">Haskell.Typeclass</span>   <span class="op">=</span> <span class="ty">Konomi.Interface</span>
+<span class="ty">Haskell.Module</span>      <span class="op">=</span> <span class="ty">Konomi.Layer</span>
+<span class="ty">Haskell.IO</span>          <span class="op">=</span> <span class="ty">Konomi.SideEffect</span>
+<span class="ty">Haskell.Pure</span>        <span class="op">=</span> <span class="ty">Konomi.Deterministic</span>
+<span class="ty">Haskell.Lazy</span>        <span class="op">=</span> <span class="ty">Konomi.OnDemand</span>
+<span class="ty">Haskell.Pattern</span>     <span class="op">=</span> <span class="ty">Konomi.Destructure</span>
+<span class="ty">Haskell.Guard</span>       <span class="op">=</span> <span class="ty">Konomi.Rule</span>
+<span class="ty">Haskell.Monad</span>       <span class="op">=</span> <span class="ty">Konomi.Context+Chain</span>
+<span class="ty">Haskell.Functor</span>     <span class="op">=</span> <span class="ty">Konomi.Mappable</span></pre>
+        </section>
+
+        <footer>
+            <p>KONOMI:HASKELL v1.0 | Pure Functional Programming Standard</p>
+        </footer>
+    </div>
+</body>
+</html>
